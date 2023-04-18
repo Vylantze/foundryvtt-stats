@@ -1,0 +1,20 @@
+{
+  "name": "foundryvtt-statistics",
+  "version": "1.0.0",
+  "description": "Calculates statistics for a foundryvtt world",
+  "main": "index.ts",
+  "scripts": {
+    "start": "npx ts-node index.ts",
+    "test": "test"
+  },
+  "author": "Arc",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^18.15.11",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "ts-node": "^10.9.1",
+    "tsc": "^2.0.4"
+  }
+}
