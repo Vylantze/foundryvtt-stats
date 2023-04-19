@@ -18,8 +18,10 @@ interface Message {
     speaker: {
         alias: string
     }
+    content?: string
     rolls: string[]
     blind: boolean
+    timestamp: number
     flags?: {
         pf2e?: {
             context?: {
@@ -70,36 +72,56 @@ interface Roll {
 interface Statistics {
     userName: string
 
-    // These are all totals
-    messages: number
-    checksMade: number // d20 rolled
-
-    attacksMade: number
-    spellsCasted: number
-    skillChecksMade: number
-    savingThrowsMade: number
-
-    dmgDealt: number // non-d20 rolled
-    healed: number // non-d20 rolled for heals
-
-    critSuccess: number
     natural20: number
     natural1: number
 
+    checks: Record<string, number>
+    critSuccess: Record<string, number>
+    success: Record<string, number>
+    failure: Record<string, number>
+    critFailure: Record<string, number>
+    
+
+    // These are all totals
+    messages: number
+    totalChecksMade: number // d20 rolled
+
+    attacksMade: number
+    spellsCasted: number
+
+    dmgDealt: number // non-d20 rolled
+    healDealt: number // non-d20 rolled for heals
+    dmgTaken: number
+    dmgHealed: number
+
     rerollsMade: number
+}
+
+interface Compiled {
+    total: Statistics
+    overall: Statistics[]
+    lastSession: Statistics[]
+    lastUpdated: Date
 }
 
 function init(name: string | undefined): Statistics {
     return {
         userName: name,
         messages: 0,
-        checksMade: 0,
+        totalChecksMade: 0,
         attacksMade: 0,
+
         dmgDealt: 0,
-        healed: 0,
-        skillChecksMade: 0,
-        savingThrowsMade: 0,
-        critSuccess: 0,
+        healDealt: 0,
+        dmgTaken: 0,
+        dmgHealed: 0,
+        
+        checks: {},
+        critSuccess: {},
+        success: {},
+        failure: {},
+        critFailure: {},
+
         natural20: 0,
         natural1: 0,
         spellsCasted: 0,
@@ -107,7 +129,38 @@ function init(name: string | undefined): Statistics {
     }
 }
 
+function parseContent(stats: Statistics, content: string) {
+    // Damage taken
+    const dmgTakenRegex = /takes\s(\d+)\sdamage/;
+    const dmgTakenArray = content.match(dmgTakenRegex);
+    if (dmgTakenArray !== null && dmgTakenArray.length > 1) {
+        try {
+            stats.dmgTaken += Number(dmgTakenArray[1]);
+        } catch (e: unknown) {
+            console.log('[parseContent][dmgTaken]  Error: ', e);
+        }
+    }
+    
+    // Damage healed
+    const dmgHealedRegex = /healed\sfor\s(\d+)\sdamage/;
+    const dmgHealedArray = content.match(dmgHealedRegex);
+    if (dmgHealedArray !== null && dmgHealedArray.length > 1) {
+        try {
+            stats.dmgHealed += Number(dmgHealedArray[1]);
+        } catch (e: unknown) {
+            console.log('[parseContent][dmgHealed] Error: ', e);
+        }
+    }
+}
+
+function incrementMap(map: Record<string, number>, key: string | undefined) {
+    if (key === undefined) key = 'free';
+    if (!map[key]) map[key] = 0;
+    map[key]++;
+}
+
 function addToStatistics(stats: Statistics, msg: Message) {
+    if (!stats || !msg) return;
     stats.messages++;
 
     const type = msg.flags?.pf2e?.context?.type;
@@ -117,18 +170,21 @@ function addToStatistics(stats: Statistics, msg: Message) {
         stats.attacksMade++;
         break;
     case 'skill-check':
-        stats.skillChecksMade++;
         break;
     case 'spell-cast':
         stats.spellsCasted++;
         break;
     case 'saving-throw':
-        stats.savingThrowsMade++;
         break;
     case 'initiative':
     case 'perception-check':
     case 'damage-roll':
+    case 'flat-check':
+        break;
     case undefined:
+        // Parse for heal and dmg
+        if (msg.flags?.pf2e && msg.content)
+            parseContent(stats, msg.content.toString());
         break;
     default:
         console.log(`${msg.type} ${type}`);
@@ -139,19 +195,26 @@ function addToStatistics(stats: Statistics, msg: Message) {
     if (origin !== undefined) {
     }
 
-    if (msg.rolls && msg.rolls.length > 0) {
-        let rolls: Roll[] = msg.rolls.map(roll => JSON.parse(roll));
-        rolls.forEach(roll => {
+    if (msg.rolls === undefined || msg.rolls.length === 0) return;
 
-            let isReroll = false;
-            let isCritSuccess = false;
-            let isNatural20 = false;
-            let isNatural1 = false;
-            stats.checksMade++;
-
-            if (roll.class === 'CheckRoll') {
-                if (roll.options.isReroll) isReroll = true;
-                if (roll.options.degreeOfSuccess === 3) isCritSuccess = true;
+    let rolls: Roll[] = msg.rolls.map(roll => JSON.parse(roll));
+    rolls.forEach(roll => {
+        switch (roll.class) {
+            case 'CheckRoll':
+            case 'Roll':
+            case 'StrikeAttackRoll':
+                stats.totalChecksMade++;
+                incrementMap(stats.checks, type);
+    
+                if (roll.options.isReroll) stats.rerollsMade++;
+    
+                switch(roll.options.degreeOfSuccess) {
+                    case 0: incrementMap(stats.critFailure, type); break;
+                    case 1: incrementMap(stats.failure, type); break;
+                    case 2: incrementMap(stats.success, type); break;
+                    case 3: incrementMap(stats.critSuccess, type); break;
+                    default: break;
+                }
                 
                 if (roll.terms && roll.terms.length > 0) {
                     roll.terms.forEach(term => {
@@ -159,37 +222,32 @@ function addToStatistics(stats: Statistics, msg: Message) {
                         if (term.faces === 20) {
                             const result = term.results && term.results.length > 0 ? term.results[0] : null;
                             if (!result) return;
-                            if (result.result === 20) isNatural20 = true;
-                            if (result.result === 1) isNatural1 = true;
+                            if (result.result === 20) {
+                                stats.natural20++;
+                                if (roll.options.degreeOfSuccess !== 3)
+                                    incrementMap(stats.critSuccess, type);
+                            }
+                            if (result.result === 1) {
+                                stats.natural1++;
+                                if (roll.options.degreeOfSuccess !== 0)
+                                    incrementMap(stats.critFailure, type);
+                            }
                         }
                     });
                 }
-            }
-            if (roll.class === 'DamageRoll') {
-                if (roll.terms && roll.terms.length > 0) {
-                    roll.terms.forEach(term => {
-                        if (term.class !== 'Die') return;
-                        if (term.faces === 20) {
-                            const result = term.results && term.results.length > 0 ? term.results[0] : null;
-                            if (!result) return;
-                            if (result.result === 20) isNatural20 = true;
-                            if (result.result === 1) isNatural1 = true;
-                        }
-                    });
-                }
+                break;
+            case 'DamageRoll':
                 if (roll.formula.includes("[healing]")) {
-                    stats.healed += roll.total;
-                }
-                if (type === 'damage-roll') {
+                    stats.healDealt += roll.total;
+                } else if (type === 'damage-roll') {
                     stats.dmgDealt += roll.total;
                 }
-            }
-            if (isReroll) stats.rerollsMade++;
-            if (isCritSuccess) stats.critSuccess++;
-            if (isNatural20) stats.natural20++;
-            if (isNatural1) stats.natural1++;
-        });
-    }
+                break;
+            default:
+                console.log('Unknown roll', roll.class);
+                break;
+        }
+    });
 }
 
 function processFiles() {
@@ -197,41 +255,59 @@ function processFiles() {
     const userStr: string = fs.readFileSync(userDBFile).toString();
     const users: Record<string, User> = {};
     const userStatistics: Record<string, Statistics> = {};
+    const lastSessionStats: Record<string, Statistics> = {};
     userStr.split('\n').forEach(line => {
         if (!line) return;
         const user: User = JSON.parse(line);
         users[user._id] = user;
         userStatistics[user._id] = init(user.name);
+        lastSessionStats[user._id] = init(user.name);
     });
 
     const overall: Statistics = init("overall");
-    userStatistics['overall'] = overall;
+    const lastSessionDate = new Date("2023-04-16");
 
     const msgStr: string = fs.readFileSync(messageDBFile).toString();
     const messages: Message[] = [];
+    let lastUpdated: Date;
     msgStr.split('\n').forEach(line => {
         if (!line) return;
         const msg: Message = JSON.parse(line);
         messages.push(msg);
+
+        const msgDate = new Date(msg.timestamp);
+        if (!lastUpdated || msgDate > lastUpdated) {
+            lastUpdated = msgDate;
+        }
         
         addToStatistics(overall, msg);
-        const stats = userStatistics[msg.user];
-        if (!stats) {
-            console.log('Unidentified user: ', msg.user);
-            return;
-        }
-        addToStatistics(stats, msg);
+        addToStatistics(userStatistics[msg.user], msg);
+
+        if (msgDate.toDateString() === lastSessionDate.toDateString())
+            addToStatistics(lastSessionStats[msg.user], msg);
     });
 
-    const statsList = Object.values(userStatistics).filter(
-        stat => stat.messages > 0
-    );
+    const statsList = Object.values(userStatistics)
+        .filter(stat => stat.messages > 0)
+        .sort((a: Statistics, b: Statistics) => a.userName > b.userName ? 1 : -1);
 
-    console.log(`
-    Total Messages: ${messages.length}
-    Statistics: `, statsList);
+    const lastSessionList = Object.values(lastSessionStats)
+        .filter(stat => stat.messages > 0)
+        .sort((a: Statistics, b: Statistics) => a.userName > b.userName ? 1 : -1);
 
-    fs.writeFileSync('stats.json', JSON.stringify(statsList));
+
+    const data: Compiled = {
+        total: overall,
+        overall: statsList,
+        lastUpdated,
+        lastSession: lastSessionList
+    }
+    console.log('Stats', data);
+
+    fs.writeFileSync('stats.json', JSON.stringify(data));
+    Object.values(users).forEach(user => {
+        fs.writeFileSync(`msg_${user.name}.db`, JSON.stringify(messages.filter(msg => msg.user === user._id)));
+    })
 }
 
 // Download file
@@ -258,6 +334,6 @@ async function downloadFiles() {
 
 // Run
 (async function () {
-    await downloadFiles();
+    //await downloadFiles(); // No need to download
     processFiles();
 })()
