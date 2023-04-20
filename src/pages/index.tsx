@@ -11,6 +11,7 @@ const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
   const url = globalThis.environment.STATS_URL;
+  const backgroundImage = 'https://vylantze-foundry-bucket.s3.ap-southeast-1.amazonaws.com/gm/gfllgt2cu5ta1.png';
 
   const [data, setData] = useState<CompiledStats | undefined>(undefined);
   
@@ -32,7 +33,9 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className={styles.main}>
+      <main className={`${styles.main} ${styles.background}`} style={{
+        backgroundImage: `url("${backgroundImage}")`,
+      }}>
         <div className={styles.description}>
           <pre>
             {JSON.stringify(data, null, '\t')}

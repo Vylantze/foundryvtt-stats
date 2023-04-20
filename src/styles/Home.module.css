@@ -7,7 +7,14 @@
   min-height: 100vh;
 }
 
+.background {
+  background-repeat: repeat-y;
+  background-size: contain;
+  padding-top: 400px;
+}
+
 .description {
+  background-color: rgba(255,255,255,0.8);
   display: inherit;
   justify-content: inherit;
   align-items: inherit;
