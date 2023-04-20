@@ -2,6 +2,8 @@ import https from 'https'; // or 'https' for https:// URLs
 import fs from 'fs';
 import path from 'path';
 import { IncomingMessage } from 'http';
+import Statistics from '@/scripts/models/Statistics'
+import CompiledStats from '@/scripts/models/CompiledStats';
 
 import { fileURLToPath } from 'url';
 
@@ -75,47 +77,6 @@ interface Roll {
             }
         }
     }
-}
-
-interface Statistics {
-    userName: string
-
-    // d20 rolls
-    natural: {
-        max: number // 20
-        min: number // 1
-        sum: number
-        count: number
-    }
-
-    checks: Record<string, number>
-    critSuccess: Record<string, number>
-    success: Record<string, number>
-    failure: Record<string, number>
-    critFailure: Record<string, number>
-    noResult: Record<string, number>
-    
-
-    // These are all totals
-    messages: number
-    totalChecksMade: number // d20 rolled
-
-    attacksMade: number
-    spellsCasted: number
-
-    dmgDealt: number // non-d20 rolled
-    healDealt: number // non-d20 rolled for heals
-    dmgTaken: number
-    dmgHealed: number
-
-    rerollsMade: number
-}
-
-interface Compiled {
-    total: Statistics
-    overall: Statistics[]
-    lastSession: Statistics[]
-    lastUpdated: Date | undefined
 }
 
 function init(name: string | undefined): Statistics {
@@ -333,7 +294,7 @@ function processFiles() {
             return a.userName > b.userName ? 1 : -1
         });
 
-    const data: Compiled = {
+    const data: CompiledStats = {
         total: overall,
         overall: statsList,
         lastUpdated,
