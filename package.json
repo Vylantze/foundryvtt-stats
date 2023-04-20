@@ -4,7 +4,7 @@
   "description": "Calculates statistics for a foundryvtt world",
   "main": "index.ts",
   "scripts": {
-    "start": "npx ts-node index.ts",
+    "stats": "npx ts-node calculateStats.ts",
     "test": "test"
   },
   "author": "Arc",

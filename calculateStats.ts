@@ -1,8 +1,10 @@
 const https = require('https'); // or 'https' for https:// URLs
-const fs = require('fs');
+import fs from 'fs';
+import path from 'path';
 
 const dataURL = "https://vylantze-foundry-bucket.s3.ap-southeast-1.amazonaws.com/data"; 
 
+const dataLocation = "data/";
 const userDBFile = "users.db";
 const messageDBFile = "messages.db";
 
@@ -269,8 +271,12 @@ function addToStatistics(stats: Statistics, msg: Message) {
 }
 
 function processFiles() {
+    const dataPath = path.resolve(__dirname, dataLocation);
+    const userDBFilePath = path.resolve(dataPath, userDBFile);
+    const messageDBFilePath = path.resolve(dataPath, messageDBFile);
+
     // Users
-    const userStr: string = fs.readFileSync(userDBFile).toString();
+    const userStr: string = fs.readFileSync(userDBFilePath).toString();
     const users: Record<string, User> = {};
     const userStatistics: Record<string, Statistics> = {};
     const lastSessionStats: Record<string, Statistics> = {};
@@ -285,7 +291,7 @@ function processFiles() {
     const overall: Statistics = init("overall");
     const lastSessionDate = new Date("2023-04-16");
 
-    const msgStr: string = fs.readFileSync(messageDBFile).toString();
+    const msgStr: string = fs.readFileSync(messageDBFilePath).toString();
     const messages: Message[] = [];
     let lastUpdated: Date;
     msgStr.split('\n').forEach(line => {
@@ -313,7 +319,6 @@ function processFiles() {
         .filter(stat => stat.messages > 0)
         .sort((a: Statistics, b: Statistics) => a.userName > b.userName ? 1 : -1);
 
-
     const data: Compiled = {
         total: overall,
         overall: statsList,
@@ -322,9 +327,9 @@ function processFiles() {
     }
     console.log('Stats', data);
 
-    fs.writeFileSync('stats.json', JSON.stringify(data));
+    fs.writeFileSync(path.resolve(dataPath, "stats.json"), JSON.stringify(data));
     Object.values(users).forEach(user => {
-        fs.writeFileSync(`msg_${user.name}.db`, JSON.stringify(messages.filter(msg => msg.user === user._id)));
+        fs.writeFileSync(path.resolve(dataPath, `msg_${user.name}.db`), JSON.stringify(messages.filter(msg => msg.user === user._id)));
     })
 }
 
@@ -352,6 +357,7 @@ async function downloadFiles() {
 
 // Run
 (async function () {
+    
     //await downloadFiles(); // No need to download
     processFiles();
 })()
