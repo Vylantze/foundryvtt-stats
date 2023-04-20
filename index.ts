@@ -85,6 +85,7 @@ interface Statistics {
     success: Record<string, number>
     failure: Record<string, number>
     critFailure: Record<string, number>
+    noResult: Record<string, number>
     
 
     // These are all totals
@@ -126,6 +127,7 @@ function init(name: string | undefined): Statistics {
         success: {},
         failure: {},
         critFailure: {},
+        noResult: {},
 
         natural: {
             max: 0,
@@ -249,7 +251,7 @@ function addToStatistics(stats: Statistics, msg: Message) {
                     case 1: incrementMap(stats.failure, type); break;
                     case 2: incrementMap(stats.success, type); break;
                     case 3: incrementMap(stats.critSuccess, type); break;
-                    default: break;
+                    default: incrementMap(stats.noResult, type); break;
                 }
                 break;
             case 'DamageRoll':
