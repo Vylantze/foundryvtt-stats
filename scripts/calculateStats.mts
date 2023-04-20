@@ -6,6 +6,7 @@ import Statistics from '@/scripts/models/Statistics'
 import CompiledStats from '@/scripts/models/CompiledStats';
 
 import { fileURLToPath } from 'url';
+import User from '@/scripts/models/User';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,11 +16,6 @@ const dataURL = "https://vylantze-foundry-bucket.s3.ap-southeast-1.amazonaws.com
 const dataLocation = "../data/";
 const userDBFile = "users.db";
 const messageDBFile = "messages.db";
-
-interface User {
-    _id: string
-    name: string
-}
 
 interface Message {
     user: string
@@ -79,9 +75,9 @@ interface Roll {
     }
 }
 
-function init(name: string | undefined): Statistics {
+function init(user: User): Statistics {
     return {
-        userName: name ?? '',
+        user,
         messages: 0,
         totalChecksMade: 0,
         attacksMade: 0,
@@ -251,11 +247,19 @@ function processFiles() {
         if (!line) return;
         const user: User = JSON.parse(line);
         users[user._id] = user;
-        userStatistics[user._id] = init(user.name);
-        lastSessionStats[user._id] = init(user.name);
+        const basicUser = {
+            _id: user._id,
+            name: user.name,
+            avatar: user.avatar,
+        };
+        userStatistics[user._id] = init(basicUser);
+        lastSessionStats[user._id] = init(basicUser);
     });
 
-    const overall: Statistics = init("overall");
+    const overall: Statistics = init({
+        _id: 'overall',
+        name: 'overall'
+    });
     const lastSessionDate = new Date("2023-04-16");
 
     const msgStr: string = fs.readFileSync(messageDBFilePath).toString();
@@ -281,17 +285,17 @@ function processFiles() {
     const statsList = Object.values(userStatistics)
         .filter(stat => stat.messages > 0)
         .sort((a: Statistics, b: Statistics) => {
-            if (a.userName === 'Gamemaster') return 1;
-            if (b.userName === 'Gamemaster') return -1;
-            return a.userName > b.userName ? 1 : -1
+            if (a.user.name === 'Gamemaster') return 1;
+            if (b.user.name === 'Gamemaster') return -1;
+            return a.user.name > b.user.name ? 1 : -1
         });
 
     const lastSessionList = Object.values(lastSessionStats)
         .filter(stat => stat.messages > 0)
         .sort((a: Statistics, b: Statistics) => {
-            if (a.userName === 'Gamemaster') return 1;
-            if (b.userName === 'Gamemaster') return -1;
-            return a.userName > b.userName ? 1 : -1
+            if (a.user.name === 'Gamemaster') return 1;
+            if (b.user.name === 'Gamemaster') return -1;
+            return a.user.name > b.user.name ? 1 : -1
         });
 
     const data: CompiledStats = {

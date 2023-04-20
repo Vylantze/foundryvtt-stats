@@ -1,6 +1,7 @@
+import User from "@/scripts/models/User"
 
 export default interface Statistics {
-    userName: string
+    user: User
 
     // d20 rolls
     natural: {
