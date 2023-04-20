@@ -10,7 +10,6 @@ import CompiledStats from '@/scripts/models/CompiledStats'
 const inter = Inter({ subsets: ['latin'] })
 
 export default function Home() {
-  const url = globalThis.environment.STATS_URL;
   const backgroundImage = 'https://vylantze-foundry-bucket.s3.ap-southeast-1.amazonaws.com/gm/gfllgt2cu5ta1.png';
 
   const [data, setData] = useState<CompiledStats | undefined>(undefined);
@@ -18,6 +17,7 @@ export default function Home() {
   // https://ultimatecourses.com/blog/using-async-await-inside-react-use-effect-hook
   useEffect(() => {
     (async () => {
+      const url = globalThis.environment.STATS_URL;
       const response = await globalThis.xhr.get<CompiledStats>(url);
       console.log('Response', response);
       if (response === null) return;

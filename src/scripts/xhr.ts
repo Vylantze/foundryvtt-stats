@@ -29,7 +29,7 @@ export default class XHR {
 
     public async delete (url: string): Promise<boolean> {
         try {
-            const response: AxiosResponse<T> = await this.instance.delete(url);
+            const response: AxiosResponse = await this.instance.delete(url);
             return response.status % 100 === 2;
         } catch (e: unknown) {
             console.error(`[XHR][delete] Failed to delete ${url}`, e);
