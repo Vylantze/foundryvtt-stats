@@ -2,12 +2,13 @@
   "name": "foundryvtt-stats",
   "version": "1.0.0",
   "description": "Calculates statistics for a foundryvtt world",
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "stats": "npx ts-node calculateStats.ts"
+    "stats": "ts-node-esm scripts/calculateStats.ts"
   },
   "author": "Arc",
   "license": "ISC",

@@ -1,11 +1,16 @@
-const https = require('https'); // or 'https' for https:// URLs
+import https from 'https'; // or 'https' for https:// URLs
 import fs from 'fs';
-import { IncomingMessage } from 'http';
 import path from 'path';
+import { IncomingMessage } from 'http';
+
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const dataURL = "https://vylantze-foundry-bucket.s3.ap-southeast-1.amazonaws.com/data"; 
 
-const dataLocation = "data/";
+const dataLocation = "../data/";
 const userDBFile = "users.db";
 const messageDBFile = "messages.db";
 
@@ -314,11 +319,19 @@ function processFiles() {
 
     const statsList = Object.values(userStatistics)
         .filter(stat => stat.messages > 0)
-        .sort((a: Statistics, b: Statistics) => a.userName > b.userName ? 1 : -1);
+        .sort((a: Statistics, b: Statistics) => {
+            if (a.userName === 'Gamemaster') return 1;
+            if (b.userName === 'Gamemaster') return -1;
+            return a.userName > b.userName ? 1 : -1
+        });
 
     const lastSessionList = Object.values(lastSessionStats)
         .filter(stat => stat.messages > 0)
-        .sort((a: Statistics, b: Statistics) => a.userName > b.userName ? 1 : -1);
+        .sort((a: Statistics, b: Statistics) => {
+            if (a.userName === 'Gamemaster') return 1;
+            if (b.userName === 'Gamemaster') return -1;
+            return a.userName > b.userName ? 1 : -1
+        });
 
     const data: Compiled = {
         total: overall,
