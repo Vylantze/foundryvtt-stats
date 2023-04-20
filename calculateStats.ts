@@ -1,5 +1,6 @@
 const https = require('https'); // or 'https' for https:// URLs
 import fs from 'fs';
+import { IncomingMessage } from 'http';
 import path from 'path';
 
 const dataURL = "https://vylantze-foundry-bucket.s3.ap-southeast-1.amazonaws.com/data"; 
@@ -109,12 +110,12 @@ interface Compiled {
     total: Statistics
     overall: Statistics[]
     lastSession: Statistics[]
-    lastUpdated: Date
+    lastUpdated: Date | undefined
 }
 
 function init(name: string | undefined): Statistics {
     return {
-        userName: name,
+        userName: name ?? '',
         messages: 0,
         totalChecksMade: 0,
         attacksMade: 0,
@@ -222,7 +223,7 @@ function addToStatistics(stats: Statistics, msg: Message) {
                         if (term.class !== 'Die') return;
                         if (term.faces === 20) {
                             const result = term.results && term.results.length > 0 ? term.results[0] : null;
-                            if (!result) { return; }
+                            if (!result || !result.result) { return; }
                             hasD20 = true;
                             stats.natural.count++;
                             stats.natural.sum += result.result;
@@ -258,9 +259,9 @@ function addToStatistics(stats: Statistics, msg: Message) {
                 break;
             case 'DamageRoll':
                 if (roll.formula.includes("[healing]")) {
-                    stats.healDealt += roll.total;
+                    stats.healDealt += roll.total ?? 0;
                 } else if (type === 'damage-roll') {
-                    stats.dmgDealt += roll.total;
+                    stats.dmgDealt += roll.total ?? 0;
                 }
                 break;
             default:
@@ -293,7 +294,7 @@ function processFiles() {
 
     const msgStr: string = fs.readFileSync(messageDBFilePath).toString();
     const messages: Message[] = [];
-    let lastUpdated: Date;
+    let lastUpdated: Date | undefined = undefined;
     msgStr.split('\n').forEach(line => {
         if (!line) return;
         const msg: Message = JSON.parse(line);
@@ -341,7 +342,7 @@ async function downloadFiles() {
             const file = fs.createWriteStream(fileName);
             const url = `${dataURL}/${fileName}`;
             console.log('Downloading from ', url);
-            https.get(url, function(response) {
+            https.get(url, function(response: IncomingMessage) {
                 response.pipe(file);
 
                 // after download completed close filestream
