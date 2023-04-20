@@ -72,8 +72,13 @@ interface Roll {
 interface Statistics {
     userName: string
 
-    natural20: number
-    natural1: number
+    // d20 rolls
+    natural: {
+        max: number // 20
+        min: number // 1
+        sum: number
+        count: number
+    }
 
     checks: Record<string, number>
     critSuccess: Record<string, number>
@@ -122,8 +127,12 @@ function init(name: string | undefined): Statistics {
         failure: {},
         critFailure: {},
 
-        natural20: 0,
-        natural1: 0,
+        natural: {
+            max: 0,
+            min: 0,
+            sum: 0,
+            count: 0
+        },
         spellsCasted: 0,
         rerollsMade: 0,
     }
@@ -203,6 +212,33 @@ function addToStatistics(stats: Statistics, msg: Message) {
             case 'CheckRoll':
             case 'Roll':
             case 'StrikeAttackRoll':
+                let hasD20 = false;
+                if (roll.terms && roll.terms.length > 0) {
+                    roll.terms.forEach(term => {
+                        if (term.class !== 'Die') return;
+                        if (term.faces === 20) {
+                            const result = term.results && term.results.length > 0 ? term.results[0] : null;
+                            if (!result) { return; }
+                            hasD20 = true;
+                            stats.natural.count++;
+                            stats.natural.sum += result.result;
+                            if (result.result === 20) {
+                                stats.natural.max++;
+                                if (roll.options.degreeOfSuccess !== 3)
+                                    incrementMap(stats.critSuccess, type);
+                            }
+                            if (result.result === 1) {
+                                stats.natural.min++;
+                                if (roll.options.degreeOfSuccess !== 0)
+                                    incrementMap(stats.critFailure, type);
+                            }
+                        }
+                    });
+                }
+                if (!hasD20) {
+                    break;
+                }
+
                 stats.totalChecksMade++;
                 incrementMap(stats.checks, type);
     
@@ -214,26 +250,6 @@ function addToStatistics(stats: Statistics, msg: Message) {
                     case 2: incrementMap(stats.success, type); break;
                     case 3: incrementMap(stats.critSuccess, type); break;
                     default: break;
-                }
-                
-                if (roll.terms && roll.terms.length > 0) {
-                    roll.terms.forEach(term => {
-                        if (term.class !== 'Die') return;
-                        if (term.faces === 20) {
-                            const result = term.results && term.results.length > 0 ? term.results[0] : null;
-                            if (!result) return;
-                            if (result.result === 20) {
-                                stats.natural20++;
-                                if (roll.options.degreeOfSuccess !== 3)
-                                    incrementMap(stats.critSuccess, type);
-                            }
-                            if (result.result === 1) {
-                                stats.natural1++;
-                                if (roll.options.degreeOfSuccess !== 0)
-                                    incrementMap(stats.critFailure, type);
-                            }
-                        }
-                    });
                 }
                 break;
             case 'DamageRoll':
