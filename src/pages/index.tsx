@@ -7,6 +7,8 @@ import { Inter } from 'next/font/google'
 
 import CompiledStats from '@/scripts/models/CompiledStats'
 
+import { useTheme } from '@/providers/ThemeProvider';
+
 import LoaderComponent from '@/components/LoaderComponent';
 
 const inter = Inter({ subsets: ['latin'] })
@@ -15,9 +17,11 @@ export default function Home() {
   const backgroundImage = 'https://vylantze-foundry-bucket.s3.ap-southeast-1.amazonaws.com/gm/gfllgt2cu5ta1.png';
 
   const [data, setData] = useState<CompiledStats | undefined>(undefined);
+  const theme = useTheme();
   
   // https://ultimatecourses.com/blog/using-async-await-inside-react-use-effect-hook
   useEffect(() => {
+    console.log('Theme', theme);
     (async () => {
       const url = globalThis.environment.STATS_URL;
       const response = await globalThis.xhr.get<CompiledStats>(url);
