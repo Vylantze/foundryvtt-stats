@@ -310,6 +310,16 @@ function processFiles() {
     // Object.values(users).forEach(user => {
     //     fs.writeFileSync(path.resolve(dataPath, `msg_${user.name}.db`), JSON.stringify(messages.filter(msg => msg.user === user._id)));
     // })
+    
+    fs.writeFileSync(path.resolve(dataPath, `msg_last_session.db`), JSON.stringify(
+      messages.filter(msg => {
+        return new Date(msg.timestamp).toDateString() === lastSessionDate.toDateString();
+        // const isLastSessionDate = new Date(msg.timestamp).toDateString() === lastSessionDate.toDateString();
+        // if (!isLastSessionDate) return false;
+        // const type = msg.flags?.pf2e?.context?.type;
+        // return type === 'spell-cast';
+      })
+    ));
 }
 
 // Download file
