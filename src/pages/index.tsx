@@ -8,6 +8,7 @@ import CompiledStats from '@/scripts/models/CompiledStats'
 import Head from 'next/head'
 import { Inter } from 'next/font/google'
 
+import CollapsibleComponent from '@/components/CollapsibleComponent';
 import LoaderComponent from '@/components/LoaderComponent';
 import TableComponent from '@/components/TableComponent';
 
@@ -39,17 +40,23 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
       </Head>
-      <main className={`${styles.main} ${styles.background}`}>
+      <main className={`${styles.main} ${styles.background}`} style={{ backgroundImage: 'url("https://vylantze-foundry-bucket.s3.ap-southeast-1.amazonaws.com/modules/pf2e-beginner-box/assets/artwork-vignettes/view-of-otari.webp")' }}>
         {
           data === undefined ?
           <LoaderComponent /> :
           (
           <div className={styles.content}>
             <div className={styles.date}>Last updated: {formatDate(data.lastUpdated, 'asTime')}</div>
-            <h1>Total</h1>
-            <TableComponent stats={data.overall} />
-            <h1>Last Session</h1>
-            <TableComponent stats={data.lastSession} />
+            <CollapsibleComponent
+              title={(<h1>Total</h1>)}
+            >
+              <TableComponent stats={data.overall} />
+            </CollapsibleComponent>
+            <CollapsibleComponent
+              title={(<h1>Last Session</h1>)}
+            >
+              <TableComponent stats={data.lastSession} />
+            </CollapsibleComponent>
           </div>
           )
         }

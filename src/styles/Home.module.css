@@ -3,13 +3,13 @@
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 5rem;
+  padding: 3rem 5rem;
   min-height: 100vh;
 }
 
 .background {
   background-repeat: repeat-y;
-  background-size: contain;
+  background-size: 100%;
 }
 
 .content {
