@@ -307,9 +307,9 @@ function processFiles() {
     console.log('Stats', data);
 
     fs.writeFileSync(path.resolve(dataPath, "stats.json"), JSON.stringify(data));
-    Object.values(users).forEach(user => {
-        fs.writeFileSync(path.resolve(dataPath, `msg_${user.name}.db`), JSON.stringify(messages.filter(msg => msg.user === user._id)));
-    })
+    // Object.values(users).forEach(user => {
+    //     fs.writeFileSync(path.resolve(dataPath, `msg_${user.name}.db`), JSON.stringify(messages.filter(msg => msg.user === user._id)));
+    // })
 }
 
 // Download file

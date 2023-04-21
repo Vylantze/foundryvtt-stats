@@ -3,7 +3,7 @@
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 6rem;
+  padding: 5rem;
   min-height: 100vh;
 }
 
@@ -12,14 +12,18 @@
   background-size: contain;
 }
 
-.description {
-  background-color: rgba(255,255,255,0.8);
-  display: inherit;
-  justify-content: inherit;
-  align-items: inherit;
-  font-size: 0.85rem;
+.content {
+  background-color: rgba(var(--callout-rgb), 0.8);
   max-width: var(--max-width);
   width: 100%;
   z-index: 2;
-  font-family: var(--font-mono);
+  padding: 10px 20px;
+}
+
+.content > *:not(:first-child) {
+  margin-top: 5px;
+}
+
+.date {
+  font-style: italic;
 }

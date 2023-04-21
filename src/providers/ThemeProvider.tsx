@@ -1,18 +1,15 @@
 import React, { createContext, useContext, useReducer, Dispatch, PropsWithChildren } from 'react';
-import storage from '@/scripts/storage';
 
 interface IThemeState {
   theme: 'light' | 'dark'
 }
 
 const defaultTheme = 'dark';
-const storedTheme = storage.getItem('theme');
-const initialTheme = storedTheme === 'light' || storedTheme === 'dark' ? storedTheme : defaultTheme;
 
 // Context lets us pass a value deep into the component tree
 // without explicitly threading it through every component.
 // Create a context for the current theme (with 'dark' as the default).
-const ThemeContext = createContext<'light' | 'dark'>(initialTheme);
+const ThemeContext = createContext<'light' | 'dark'>(defaultTheme);
 const ThemeDispatchContext = createContext<Dispatch<IThemeState> | undefined>(undefined);
 
 const useTheme = function () {

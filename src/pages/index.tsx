@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import styles from '@/styles/Home.module.css'
-
-import Head from 'next/head'
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
-
-import CompiledStats from '@/scripts/models/CompiledStats'
-
 import { useTheme } from '@/providers/ThemeProvider';
 
+import { formatDate } from '@/scripts/utils';
+import CompiledStats from '@/scripts/models/CompiledStats'
+
+import Head from 'next/head'
+import { Inter } from 'next/font/google'
+
 import LoaderComponent from '@/components/LoaderComponent';
+import TableComponent from '@/components/TableComponent';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -44,10 +44,12 @@ export default function Home() {
           data === undefined ?
           <LoaderComponent /> :
           (
-          <div className={styles.description}>
-            <pre>
-              {JSON.stringify(data, null, '\t')}
-            </pre>
+          <div className={styles.content}>
+            <div className={styles.date}>Last updated: {formatDate(data.lastUpdated, 'asTime')}</div>
+            <h1>Total</h1>
+            <TableComponent stats={data.overall} />
+            <h1>Last Session</h1>
+            <TableComponent stats={data.lastSession} />
           </div>
           )
         }

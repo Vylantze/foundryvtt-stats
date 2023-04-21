@@ -1,0 +1,27 @@
+.table {
+  width: 100%;
+  background-color: white;
+}
+
+.header {
+  text-align: center;
+  color: #495057;
+  background-color: #e9ecef !important; 
+}
+
+.rowhead {
+  text-align: left;
+}
+
+.content {
+  text-align: center;
+}
+
+.nested {
+  background-color: #e9ecefcc !important;
+  font-size: 0.85em;
+}
+
+.rowhead.nested {
+  padding-left: 30px !important;
+}
