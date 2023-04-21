@@ -32,9 +32,9 @@ export default function TableComponent (props: IProps) {
       <thead>
         <tr>
           <th className={styles.header} />
-          {controller.stats.map((stat: Statistics) => {
+          {controller.stats.map((stat, index) => {
             return (
-              <th className={styles.header}>
+              <th className={styles.header} key={`header-${index}`}>
                 <Image
                   src={stat.user.avatar ?? ''}
                   alt={`${stat.user.name} avatar`}
@@ -49,13 +49,17 @@ export default function TableComponent (props: IProps) {
         </tr>
       </thead>
       <tbody>      
-        {controller.templates.map((template: TableTemplate) => {
+        {controller.templates.map((template, index) => {
           const descriptionStyle = template.isNested ? `${styles.nested} ${styles.rowhead}` : styles.rowhead;
           const tdStyle = template.isNested ? `${styles.nested} ${styles.content}` : styles.content;
           return (
-            <tr>
+            <tr  key={`row-${index}`}>
               <td className={descriptionStyle}>{template.name}</td>
-              {template.values.map(value => <td className={tdStyle}>{value}</td>)}
+              {template.values.map((value, subIndex) =>
+                <td className={tdStyle} key={`row-${index}-td-${subIndex}`}>
+                  {value}
+                </td>
+              )}
             </tr>
           );
         })}
