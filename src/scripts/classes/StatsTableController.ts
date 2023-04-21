@@ -30,6 +30,47 @@ export default class StatsTableController {
         isNested: false
       },
 
+      // Rolls subsection
+      {
+        name: 'Natural rolls (avg)',
+        values: stats.map(stat => (stat.natural.sum / stat.natural.count).toFixed(1)),
+        isNested: false
+      },
+      {
+        name: 'Natural 20',
+        values: stats.map(stat => stat.natural.max),
+        isNested: true
+      },
+      {
+        name: 'Natural 1',
+        values: stats.map(stat => stat.natural.min),
+        isNested: true
+      },
+
+      // Checks sub section
+      {
+        name: 'Checks made',
+        values: stats.map(stat => stat.totalChecksMade),
+        isNested: false
+      },
+      categories
+        .map((category): TableTemplate => {
+          return {
+            name: getStatCategoryDisplayName(category),
+            values: stats.map(stat => stat.checks[category.toString()]),
+            isNested: true
+          };
+        })
+        .filter(template => template.values.filter(value => value !== undefined).length > 0),
+
+      // Spells
+      
+      {
+        name: 'Spells casted',
+        values: stats.map(stat => stat.spellsCasted),
+        isNested: false
+      },
+
       // Damage section
       {
         name: 'Damage dealt',
@@ -51,46 +92,6 @@ export default class StatsTableController {
         values: stats.map(stat => stat.dmgHealed),
         isNested: false
       },
-
-      // Misc
-      {
-        name: 'Spells casted',
-        values: stats.map(stat => stat.dmgHealed),
-        isNested: false
-      },
-
-      // Checks sub section
-      {
-        name: 'Checks made',
-        values: stats.map(stat => stat.totalChecksMade),
-        isNested: false
-      },
-      categories
-        .map((category): TableTemplate => {
-          return {
-            name: getStatCategoryDisplayName(category),
-            values: stats.map(stat => stat.checks[category.toString()]),
-            isNested: true
-          };
-        })
-        .filter(template => template.values.filter(value => value !== undefined).length > 0),
-
-        // Rolls subsection
-        {
-          name: 'Natural rolls (avg)',
-          values: stats.map(stat => (stat.natural.sum / stat.natural.count).toFixed(1)),
-          isNested: false
-        },
-        {
-          name: 'Natural 20',
-          values: stats.map(stat => stat.natural.max),
-          isNested: true
-        },
-        {
-          name: 'Natural 1',
-          values: stats.map(stat => stat.natural.min),
-          isNested: true
-        },
 
       //
       // Success subsection
