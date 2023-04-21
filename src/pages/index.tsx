@@ -34,8 +34,8 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>FoundryVTT Stats</title>
-        <meta name="description" content="Stats for FoundryVTT" />
+        <title>Campaign Stats</title>
+        <meta name="description" content="Did you roll a 20 or a 1?" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="shortcut icon" type="image/x-icon" href="favicon.ico" />
       </Head>
