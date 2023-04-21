@@ -1,5 +1,5 @@
 export default interface User {
-    _id: string
-    name: string
-    avatar?: string
+  _id: string
+  name: string
+  avatar?: string
 }
