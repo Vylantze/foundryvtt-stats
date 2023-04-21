@@ -2,7 +2,7 @@ import { ReactNode } from "react"
 import Statistics from '@/scripts/models/Statistics';
 import TableTemplate from "@/scripts/models/TableTemplate";
 import StatCategory from "@/scripts/models/StatCategory";
-import { getStatCategoryDisplayName, sumAll } from "@/scripts/utils";
+import { getPercentage, getStatCategoryDisplayName, sumAll } from "@/scripts/utils";
 
 export default class StatsTableController {
   private _stats: Statistics[] = [];
@@ -37,8 +37,18 @@ export default class StatsTableController {
         isNested: false
       },
       {
+        name: 'Natural 20 (%)',
+        values: stats.map(stat => getPercentage(stat.natural.max / stat.totalChecksMade)),
+        isNested: true
+      },
+      {
         name: 'Natural 20',
         values: stats.map(stat => stat.natural.max),
+        isNested: true
+      },
+      {
+        name: 'Natural 1 (%)',
+        values: stats.map(stat => getPercentage(stat.natural.min / stat.totalChecksMade)),
         isNested: true
       },
       {
@@ -100,8 +110,13 @@ export default class StatsTableController {
       // crit success
       {
         name: 'Critical success',
-        values: stats.map(stat => sumAll(stat.critSuccess)),
+        values: stats.map(stat => getPercentage(sumAll(stat.critSuccess) / stat.totalChecksMade)),
         isNested: false
+      },
+      {
+        name: 'Total',
+        values: stats.map(stat => sumAll(stat.critSuccess)),
+        isNested: true
       },
       categories
         .map(category => {
@@ -116,8 +131,13 @@ export default class StatsTableController {
       // success
       {
         name: 'Success',
-        values: stats.map(stat => sumAll(stat.success)),
+        values: stats.map(stat => getPercentage(sumAll(stat.success) / stat.totalChecksMade)),
         isNested: false
+      },
+      {
+        name: 'Total',
+        values: stats.map(stat => sumAll(stat.success)),
+        isNested: true
       },
       categories
         .map(category => {
@@ -132,8 +152,13 @@ export default class StatsTableController {
       // failure
       {
         name: 'Failure',
-        values: stats.map(stat => sumAll(stat.failure)),
+        values: stats.map(stat => getPercentage(sumAll(stat.failure) / stat.totalChecksMade)),
         isNested: false
+      },
+      {
+        name: 'Total',
+        values: stats.map(stat => sumAll(stat.failure)),
+        isNested: true
       },
       categories
         .map(category => {
@@ -148,8 +173,13 @@ export default class StatsTableController {
       // crit failure
       {
         name: 'Critical failure',
-        values: stats.map(stat => sumAll(stat.critFailure)),
+        values: stats.map(stat => getPercentage(sumAll(stat.critFailure) / stat.totalChecksMade)),
         isNested: false
+      },
+      {
+        name: 'Total',
+        values: stats.map(stat => sumAll(stat.critFailure)),
+        isNested: true
       },
       categories
         .map(category => {

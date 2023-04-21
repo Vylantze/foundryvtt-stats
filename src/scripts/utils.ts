@@ -37,8 +37,13 @@ function sumAll (map: Record<string, number>): number {
   return Object.values(map).reduce((sum, num) => sum + num, 0);
 }
 
+function getPercentage (value: number): string {
+  return `${(100 * value).toFixed(1)}%`;
+}
+
 export {
   formatDate,
+  getPercentage,
   getStatCategoryDisplayName,
   sumAll
 }
