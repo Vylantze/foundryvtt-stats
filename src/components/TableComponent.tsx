@@ -37,6 +37,7 @@ export default function TableComponent (props: IProps) {
               return (
                 <th className={styles.header} key={`header-${index}`}>
                   <Image
+                    className={styles.avatar}
                     src={stat.user.avatar ?? ''}
                     alt={`${stat.user.name} avatar`}
                     width={50}
