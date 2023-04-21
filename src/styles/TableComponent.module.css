@@ -1,3 +1,9 @@
+.container {
+  display: relative;
+  overflow: auto;
+  width: 100%;
+}
+
 .table {
   width: 100%;
   background-color: white;

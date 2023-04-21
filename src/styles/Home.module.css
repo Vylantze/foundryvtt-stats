@@ -27,3 +27,9 @@
 .date {
   font-style: italic;
 }
+
+@media (max-width: 800px)  {
+  .main {
+    padding: 10px;
+  }
+}
