@@ -192,11 +192,15 @@ export default class StatsTableController {
         .filter(template => template.values.filter(value => value !== undefined).length > 0),
 
       // no result
-      /*
       {
         name: 'No result',
-        values: stats.map(stat => sumAll(stat.noResult)),
+        values: stats.map(stat => getPercentage(sumAll(stat.noResult) / stat.totalChecksMade)),
         isNested: false
+      },
+      {
+        name: 'Total',
+        values: stats.map(stat => sumAll(stat.noResult)),
+        isNested: true
       },
       categories
         .map(category => {
@@ -207,7 +211,6 @@ export default class StatsTableController {
           }
         })
         .filter(template => template.values.filter(value => value !== undefined).length > 0),
-      //*/
 
       // Misc
       {
