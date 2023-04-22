@@ -4,6 +4,16 @@ import TableTemplate from "@/scripts/models/TableTemplate";
 import StatCategory from "@/scripts/models/StatCategory";
 import { getPercentage, getStatCategoryDisplayName, sumAll } from "@/scripts/utils";
 
+interface DegreeOfSuccess {
+  critSuccess: number
+  success: number
+  failure: number
+  critFailure: number
+  noResult: number
+  totalChecksMade: number
+  totalValid: number
+}
+
 export default class StatsTableController {
   private _stats: Statistics[] = [];
   private _templates: TableTemplate[] = [];
@@ -23,6 +33,19 @@ export default class StatsTableController {
 
   public static constructTableTemplate (stats: Statistics[]): TableTemplate[] {
     const categories = Object.values(StatCategory);
+    const degrees: DegreeOfSuccess[] = stats.map((stat): DegreeOfSuccess => {
+      const noResult = sumAll(stat.noResult);
+      return {
+        critSuccess: sumAll(stat.critSuccess),
+        success: sumAll(stat.success),
+        failure: sumAll(stat.failure),
+        critFailure: sumAll(stat.critFailure),
+        noResult: noResult,
+        totalChecksMade: stat.totalChecksMade,
+        totalValid: stat.totalChecksMade - noResult,
+      };
+    }) 
+
     const temp: (TableTemplate | TableTemplate[])[] = [
       {
         name: 'Messages',
@@ -110,12 +133,12 @@ export default class StatsTableController {
       // crit success
       {
         name: 'Critical success',
-        values: stats.map(stat => getPercentage(sumAll(stat.critSuccess) / stat.totalChecksMade)),
+        values: degrees.map(degree => getPercentage(degree.critSuccess / degree.totalValid)),
         isNested: false
       },
       {
         name: 'Total',
-        values: stats.map(stat => sumAll(stat.critSuccess)),
+        values: degrees.map(degree => degree.critSuccess),
         isNested: true
       },
       categories
@@ -131,12 +154,12 @@ export default class StatsTableController {
       // success
       {
         name: 'Success',
-        values: stats.map(stat => getPercentage(sumAll(stat.success) / stat.totalChecksMade)),
+        values: degrees.map(degree => getPercentage(degree.success / degree.totalValid)),
         isNested: false
       },
       {
         name: 'Total',
-        values: stats.map(stat => sumAll(stat.success)),
+        values: degrees.map(degree => degree.success),
         isNested: true
       },
       categories
@@ -152,12 +175,12 @@ export default class StatsTableController {
       // failure
       {
         name: 'Failure',
-        values: stats.map(stat => getPercentage(sumAll(stat.failure) / stat.totalChecksMade)),
+        values: degrees.map(degree => getPercentage(degree.failure / degree.totalValid)),
         isNested: false
       },
       {
         name: 'Total',
-        values: stats.map(stat => sumAll(stat.failure)),
+        values: degrees.map(degree => degree.failure),
         isNested: true
       },
       categories
@@ -173,12 +196,12 @@ export default class StatsTableController {
       // crit failure
       {
         name: 'Critical failure',
-        values: stats.map(stat => getPercentage(sumAll(stat.critFailure) / stat.totalChecksMade)),
+        values: degrees.map(degree => getPercentage(degree.critFailure / degree.totalValid)),
         isNested: false
       },
       {
         name: 'Total',
-        values: stats.map(stat => sumAll(stat.critFailure)),
+        values: degrees.map(degree => degree.critFailure),
         isNested: true
       },
       categories
@@ -194,12 +217,12 @@ export default class StatsTableController {
       // no result
       {
         name: 'No result',
-        values: stats.map(stat => getPercentage(sumAll(stat.noResult) / stat.totalChecksMade)),
+        values: degrees.map(degree => getPercentage(degree.noResult / degree.totalChecksMade)),
         isNested: false
       },
       {
         name: 'Total',
-        values: stats.map(stat => sumAll(stat.noResult)),
+        values: degrees.map(degree => degree.noResult),
         isNested: true
       },
       categories
