@@ -17,6 +17,8 @@ export default interface Statistics {
   failure: Record<string, number>
   critFailure: Record<string, number>
   noResult: Record<string, number>
+  natural20: Record<string, number>
+  natural1: Record<string, number>
   
 
   // These are all totals
