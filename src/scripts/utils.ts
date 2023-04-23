@@ -7,10 +7,10 @@ function formatDate (data: string | Date | null | undefined, format: 'asDate' | 
   const date = typeof data === 'string' ? new Date(data) : data;
   switch (format) {
     case 'asTime':
-      return dateformat(date, 'yyyy-MM-dd h:MMtt')
+      return dateformat(date, 'yyyy-mm-dd h:MMtt')
     case 'asDate':
     default:
-      return dateformat(date, 'yyyy-MM-dd')
+      return dateformat(date, 'yyyy-mm-dd')
   }
 }
 
