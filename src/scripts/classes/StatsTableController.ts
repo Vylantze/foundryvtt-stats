@@ -59,26 +59,6 @@ export default class StatsTableController {
         values: stats.map(stat => (stat.natural.sum / stat.natural.count).toFixed(1)),
         isNested: false
       },
-      {
-        name: 'Natural 20 (%)',
-        values: stats.map(stat => getPercentage(stat.natural.max / stat.totalChecksMade)),
-        isNested: true
-      },
-      {
-        name: 'Natural 20',
-        values: stats.map(stat => stat.natural.max),
-        isNested: true
-      },
-      {
-        name: 'Natural 1 (%)',
-        values: stats.map(stat => getPercentage(stat.natural.min / stat.totalChecksMade)),
-        isNested: true
-      },
-      {
-        name: 'Natural 1',
-        values: stats.map(stat => stat.natural.min),
-        isNested: true
-      },
 
       // Checks sub section
       {
@@ -95,6 +75,49 @@ export default class StatsTableController {
           };
         })
         .filter(template => template.values.filter(value => value !== undefined).length > 0),
+
+      // Natural 20
+      {
+        name: 'Natural 20',
+        values: stats.map(stat => getPercentage(stat.natural.max / stat.totalChecksMade)),
+        isNested: false
+      },
+      {
+        name: 'Total',
+        values: stats.map(stat => stat.natural.max),
+        isNested: true
+      },
+      categories
+        .map((category): TableTemplate => {
+          return {
+            name: getStatCategoryDisplayName(category),
+            values: stats.map(stat => stat.natural20[category.toString()]),
+            isNested: true
+          };
+        })
+        .filter(template => template.values.filter(value => value !== undefined).length > 0),
+
+      // Natural 1
+      {
+        name: 'Natural 1',
+        values: stats.map(stat => getPercentage(stat.natural.min / stat.totalChecksMade)),
+        isNested: false
+      },
+      {
+        name: 'Total',
+        values: stats.map(stat => stat.natural.min),
+        isNested: true
+      },
+      categories
+        .map(category => {
+          return {
+            name: getStatCategoryDisplayName(category),
+            values: stats.map(stat => stat.natural1[category.toString()]),
+            isNested: true
+          }
+        })
+        .filter(template => template.values.filter(value => value !== undefined).length > 0),
+
 
       // Spells
       

@@ -193,12 +193,15 @@ function addToStatistics(stats: Statistics, msg: Message) {
               stats.natural.sum += result.result;
               if (result.result === 20) {
                 stats.natural.max++;
+                incrementMap(stats.natural20, type);
                 
                 if (roll.options.degreeOfSuccess !== 3)
                   incrementMap(stats.critSuccess, type);
               }
               if (result.result === 1) {
                 stats.natural.min++;
+                incrementMap(stats.natural1, type);
+
                 if (roll.options.degreeOfSuccess !== 0)
                   incrementMap(stats.critFailure, type);
               }
