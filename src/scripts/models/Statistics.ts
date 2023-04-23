@@ -1,4 +1,4 @@
-import User from "@/scripts/models/User"
+import User from "./User"
 
 export default interface Statistics {
   user: User
@@ -27,6 +27,8 @@ export default interface Statistics {
 
   attacksMade: number
   spellsCasted: number
+  spellTypes: Record<string, number>
+  spellLevels: Record<string, number>
 
   dmgDealt: number // non-d20 rolled
   healDealt: number // non-d20 rolled for heals

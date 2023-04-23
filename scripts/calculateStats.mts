@@ -2,11 +2,13 @@ import https from 'https'; // or 'https' for https:// URLs
 import fs from 'fs';
 import path from 'path';
 import { IncomingMessage } from 'http';
-import Statistics from '@/scripts/models/Statistics'
-import CompiledStats from '@/scripts/models/CompiledStats';
+
 
 import { fileURLToPath } from 'url';
 import User from '@/scripts/models/User';
+import Statistics from '@/scripts/models/Statistics'
+import { Message, Roll } from '@/scripts/models/Raw';
+import CompiledStats from '@/scripts/models/CompiledStats';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,67 +19,12 @@ const dataLocation = "../data/";
 const userDBFile = "users.db";
 const messageDBFile = "messages.db";
 
-interface Message {
-  user: string
-  type: number
-  flavor: string
-  speaker: {
-    alias: string
-  }
-  content?: string
-  rolls: string[]
-  blind: boolean
-  timestamp: number
-  flags?: {
-    pf2e?: {
-      context?: {
-        type?: string
-      }
-      origin?: {
-        type?: string
-      }
-    }
-  }
-}
-
-interface Term {
-  class: string
-  evaluated?: boolean
-  number?: number
-  faces?: number
-  results?: {
-    result?: number
-    active?: boolean
-  }[]
-  operator?: string
-}
-
-interface Roll {
-  class: string
-  type: number
-  domains: string[]
-  formula: string
-  options: {
-    rollerId: string
-    isReroll: boolean
-    domains: string[]
-    degreeOfSuccess?: number
-    flavor?: string
-  }
-  terms: Term[]
-  total?: number
-  flags?: {
-    pf2e?: {
-      context?: {
-        type?: string
-      }
-    }
-  }
-}
-
-function init(user: User): Statistics {
+const empty = function (): Statistics {
   return {
-    user,
+    user: {
+      _id: '',
+      name: '',
+    },
     messages: 0,
     totalChecksMade: 0,
     attacksMade: 0,
@@ -103,8 +50,17 @@ function init(user: User): Statistics {
       count: 0
     },
     spellsCasted: 0,
+    spellTypes: {},
+    spellLevels: {},
+
     rerollsMade: 0,
   }
+}
+
+function init(user: User): Statistics {
+  const stats = empty();
+  stats.user = user;
+  return stats;
 }
 
 function parseContent(stats: Statistics, content: string) {
@@ -136,6 +92,11 @@ function incrementMap(map: Record<string, number>, key: string | undefined) {
   if (!map[key]) map[key] = 0;
   map[key]++;
 }
+function decrementMap(map: Record<string, number>, key: string | undefined) {
+  if (key === undefined) key = 'free';
+  if (!map[key]) map[key] = 0;
+  map[key]--;
+}
 
 function addToStatistics(stats: Statistics, msg: Message) {
   if (!stats || !msg) return;
@@ -147,17 +108,14 @@ function addToStatistics(stats: Statistics, msg: Message) {
   case 'attack-roll':
     stats.attacksMade++;
     break;
-  case 'skill-check':
-    break;
-  case 'spell-cast':
-    stats.spellsCasted++;
-    break;
   case 'saving-throw':
     break;
+  case 'skill-check':
   case 'initiative':
   case 'perception-check':
   case 'damage-roll':
   case 'flat-check':
+  case 'spell-cast':
     break;
   case undefined:
     // Parse for heal and dmg
@@ -167,6 +125,42 @@ function addToStatistics(stats: Statistics, msg: Message) {
   default:
     console.log(`${msg.type} ${type}`);
     break;
+  }
+
+  
+  const casting = msg.flags?.pf2e?.casting;
+  if (casting !== undefined) {
+    stats.spellsCasted++;
+
+    const msgFlavor = msg.flavor ?? ''
+    const msgContent = msg.content ?? ''
+    const domains = msg.flags?.pf2e?.context?.domains
+
+    // SpellTypes
+    if (msgContent.includes('{Lay on Hands (Vs. Undead)}' )) {
+      decrementMap(stats.spellTypes, 'healing');
+      incrementMap(stats.spellTypes, 'dc');
+    } else if (msgContent.includes('Healing') || msgContent.includes('>Heal<') || msgContent.includes('Harm (vs. Undead)')) {
+      incrementMap(stats.spellTypes, 'healing');
+    } else if (domains?.includes('spell-dc')) {
+      incrementMap(stats.spellTypes, 'dc');
+    } else if (msgContent.includes('spell-attack-button')) {
+      incrementMap(stats.spellTypes, 'attack');
+    } else {
+      incrementMap(stats.spellTypes, 'support');
+    }
+
+    // Spell level
+    if (msgContent.includes('Cantrip')) {
+      incrementMap(stats.spellLevels, 'cantrip');
+    } else if (msgContent.includes('Focus')) {
+      incrementMap(stats.spellLevels, 'focus');
+    } else if (msgContent.includes('Ritual')) {
+      incrementMap(stats.spellLevels, 'ritual');
+    } else {
+      const spellLevel = casting.level ?? -1;
+      incrementMap(stats.spellLevels, spellLevel.toString());
+    }
   }
   
   const origin = msg.flags?.pf2e?.origin?.type;
@@ -314,9 +308,15 @@ function processFiles() {
   console.log('Stats', data);
 
   fs.writeFileSync(path.resolve(dataPath, "stats.json"), JSON.stringify(data));
-  // Object.values(users).forEach(user => {
-  //     fs.writeFileSync(path.resolve(dataPath, `msg_${user.name}.db`), JSON.stringify(messages.filter(msg => msg.user === user._id)));
-  // })
+  Object.values(users).forEach(user => {
+    if (user.name !== 'Rylond') return;
+    fs.writeFileSync(path.resolve(dataPath, `msg_${user.name}.db`), JSON.stringify(messages
+      .filter(msg => msg.user === user._id)
+      .filter(msg => new Date(msg.timestamp).toDateString() === lastSessionDate.toDateString())
+      .filter(msg => msg.flags?.pf2e?.casting !== undefined)
+      .sort((msg1, msg2) => msg1.timestamp > msg2.timestamp ? 1 : -1))
+    );
+  })
   
   fs.writeFileSync(path.resolve(dataPath, `msg_last_session.db`), JSON.stringify(
     messages.filter(msg => {

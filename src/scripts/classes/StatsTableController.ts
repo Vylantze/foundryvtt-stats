@@ -1,8 +1,11 @@
 import { ReactNode } from "react"
+
+import SpellLevel from '@/scripts/models/SpellLevels';
+import SpellType from '@/scripts/models/SpellType';
 import Statistics from '@/scripts/models/Statistics';
 import TableTemplate from "@/scripts/models/TableTemplate";
 import StatCategory from "@/scripts/models/StatCategory";
-import { getPercentage, getStatCategoryDisplayName, sumAll } from "@/scripts/utils";
+import { getPercentage, getDisplayName, sumAll } from "@/scripts/utils";
 
 interface DegreeOfSuccess {
   critSuccess: number
@@ -33,6 +36,9 @@ export default class StatsTableController {
 
   public static constructTableTemplate (stats: Statistics[]): TableTemplate[] {
     const categories = Object.values(StatCategory);
+    const spellLevels = Object.values(SpellLevel);
+    const spellTypes = Object.values(SpellType);
+
     const degrees: DegreeOfSuccess[] = stats.map((stat): DegreeOfSuccess => {
       const noResult = sumAll(stat.noResult);
       return {
@@ -69,7 +75,7 @@ export default class StatsTableController {
       categories
         .map((category): TableTemplate => {
           return {
-            name: getStatCategoryDisplayName(category),
+            name: getDisplayName(category),
             values: stats.map(stat => stat.checks[category.toString()]),
             isNested: true
           };
@@ -90,7 +96,7 @@ export default class StatsTableController {
       categories
         .map((category): TableTemplate => {
           return {
-            name: getStatCategoryDisplayName(category),
+            name: getDisplayName(category),
             values: stats.map(stat => stat.natural20[category.toString()]),
             isNested: true
           };
@@ -111,21 +117,12 @@ export default class StatsTableController {
       categories
         .map(category => {
           return {
-            name: getStatCategoryDisplayName(category),
+            name: getDisplayName(category),
             values: stats.map(stat => stat.natural1[category.toString()]),
             isNested: true
           }
         })
         .filter(template => template.values.filter(value => value !== undefined).length > 0),
-
-
-      // Spells
-      
-      {
-        name: 'Spells casted',
-        values: stats.map(stat => stat.spellsCasted),
-        isNested: false
-      },
 
       // Damage section
       {
@@ -149,6 +146,33 @@ export default class StatsTableController {
         isNested: false
       },
 
+
+      // Spells
+      
+      {
+        name: 'Spells casted',
+        values: stats.map(stat => stat.spellsCasted),
+        isNested: false
+      },
+      spellTypes
+        .map(type => {
+          return {
+            name: getDisplayName(type),
+            values: stats.map(stat => stat.spellTypes[type.toString()]),
+            isNested: true
+          }
+        })
+        .filter(template => template.values.filter(value => value !== undefined).length > 0),
+      spellLevels
+        .map(type => {
+          return {
+            name: getDisplayName(type),
+            values: stats.map(stat => stat.spellLevels[type.toString()]),
+            isNested: true
+          }
+        })
+        .filter(template => template.values.filter(value => value !== undefined).length > 0),
+      
       //
       // Success subsection
       //
@@ -167,7 +191,7 @@ export default class StatsTableController {
       categories
         .map(category => {
           return {
-            name: getStatCategoryDisplayName(category),
+            name: getDisplayName(category),
             values: stats.map(stat => stat.critSuccess[category.toString()]),
             isNested: true
           }
@@ -188,7 +212,7 @@ export default class StatsTableController {
       categories
         .map(category => {
           return {
-            name: getStatCategoryDisplayName(category),
+            name: getDisplayName(category),
             values: stats.map(stat => stat.success[category.toString()]),
             isNested: true
           }
@@ -209,7 +233,7 @@ export default class StatsTableController {
       categories
         .map(category => {
           return {
-            name: getStatCategoryDisplayName(category),
+            name: getDisplayName(category),
             values: stats.map(stat => stat.failure[category.toString()]),
             isNested: true
           }
@@ -230,7 +254,7 @@ export default class StatsTableController {
       categories
         .map(category => {
           return {
-            name: getStatCategoryDisplayName(category),
+            name: getDisplayName(category),
             values: stats.map(stat => stat.critFailure[category.toString()]),
             isNested: true
           }
@@ -251,7 +275,7 @@ export default class StatsTableController {
       categories
         .map(category => {
           return {
-            name: getStatCategoryDisplayName(category),
+            name: getDisplayName(category),
             values: stats.map(stat => stat.noResult[category.toString()]),
             isNested: true
           }

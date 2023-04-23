@@ -5,7 +5,7 @@ enum StatCategory {
   SavingThrow = 'saving-throw',
   Initiative = 'initiative',
   FlatCheck = 'flat-check',
-  Uncategorised = 'free',
+  Free = 'free',
 }
 
 export default StatCategory;
