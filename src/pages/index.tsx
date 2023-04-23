@@ -50,7 +50,7 @@ export default function Home() {
               <TableComponent stats={data.overall} />
             </CollapsibleComponent>
             <CollapsibleComponent
-              title={(<h1>Last Session</h1>)}
+              title={(<h1>Last Session ({formatDate(data.lastSessionDate, 'asDate')})</h1>)}
             >
               <TableComponent stats={data.lastSession} />
             </CollapsibleComponent>

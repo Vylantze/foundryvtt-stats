@@ -5,4 +5,5 @@ export default interface CompiledStats {
   overall: Statistics[]
   lastSession: Statistics[]
   lastUpdated: Date | undefined
+  lastSessionDate: Date | undefined
 }
