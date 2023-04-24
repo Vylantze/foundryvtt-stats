@@ -26,10 +26,17 @@
 
 .date {
   font-style: italic;
+  user-select: none;
 }
 
 @media (max-width: 800px)  {
   .main {
     padding: 10px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .date {
+    color: #dddddd;
   }
 }
