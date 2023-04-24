@@ -16,7 +16,7 @@ export default function CollapsibleComponent (props: PropsWithChildren<IProps>) 
   return (
     <div className={styles.collapsible}>
       <div className={styles.divider}>
-        {props.title}
+        <div className={styles.title}>{props.title}</div>
         <div style={{ flex: 1 }} />
         <div
           className={styles.toggle}

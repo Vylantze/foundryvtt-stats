@@ -214,6 +214,10 @@
     filter: invert(1);
   }
 
+  .date {
+    color: #dddddd;
+  }
+
   .logo {
     filter: invert(1) drop-shadow(0 0 0.3rem #ffffff70);
   }
