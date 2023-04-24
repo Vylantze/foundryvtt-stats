@@ -48,7 +48,7 @@ function getDisplayName (name: StatCategory | SpellLevel | SpellType): string {
     case SpellLevel.Level7:
     case SpellLevel.Level8:
     case SpellLevel.Level9:
-      return name.toString();
+      return name.toString() + getOrdinal(name);
     
     case SpellType.AttackRoll:
       return "Attack roll";
@@ -64,6 +64,18 @@ function getDisplayName (name: StatCategory | SpellLevel | SpellType): string {
   }
 }
 
+function getOrdinal(num: number | string) {
+  const n = typeof num === 'number' ? num : parseInt(num);
+  if (n % 10 === 1 && n % 100 !== 11) {
+    return 'st';
+  } else if (n % 10 === 2 && n % 100 !== 12) {
+    return 'nd';
+  } else if (n % 10 === 3 && n % 100 !== 13) {
+    return 'rd';
+  }
+  return 'th';
+}
+
 function sumAll (map: Record<string, number>): number {
   return Object.values(map).reduce((sum, num) => sum + num, 0);
 }
@@ -74,6 +86,7 @@ function getPercentage (value: number): string {
 
 export {
   formatDate,
+  getOrdinal,
   getPercentage,
   getDisplayName,
   sumAll
