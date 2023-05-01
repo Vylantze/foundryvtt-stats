@@ -66,22 +66,6 @@ export default class StatsTableController {
         isNested: false
       },
 
-      // Checks sub section
-      {
-        name: 'Checks made',
-        values: stats.map(stat => stat.totalChecksMade),
-        isNested: false
-      },
-      categories
-        .map((category): TableTemplate => {
-          return {
-            name: getDisplayName(category),
-            values: stats.map(stat => stat.checks[category.toString()]),
-            isNested: true
-          };
-        })
-        .filter(template => template.values.filter(value => value !== undefined).length > 0),
-
       // Natural 20
       {
         name: 'Natural 20',
@@ -172,7 +156,23 @@ export default class StatsTableController {
           }
         })
         .filter(template => template.values.filter(value => value !== undefined).length > 0),
-      
+
+      // Checks sub section
+      {
+        name: 'Checks made',
+        values: stats.map(stat => stat.totalChecksMade),
+        isNested: false
+      },
+      categories
+        .map((category): TableTemplate => {
+          return {
+            name: getDisplayName(category),
+            values: stats.map(stat => stat.checks[category.toString()]),
+            isNested: true
+          };
+        })
+        .filter(template => template.values.filter(value => value !== undefined).length > 0),
+
       //
       // Success subsection
       //

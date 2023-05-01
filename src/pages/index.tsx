@@ -27,7 +27,7 @@ export default function Home() {
       if (response === null) return;
       setData(response);
     })().catch(console.error);
-  }, [])
+  }, []);
 
   return (
     <>
