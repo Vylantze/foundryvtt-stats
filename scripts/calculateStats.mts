@@ -260,7 +260,7 @@ function processFiles() {
       _id: 'overall',
       name: 'overall'
   });
-  const lastSessionDate = new Date("2023-04-23");
+  const lastSessionDate = new Date("2023-04-30");
 
   const msgStr: string = fs.readFileSync(messageDBFilePath).toString();
   const messages: Message[] = [];
