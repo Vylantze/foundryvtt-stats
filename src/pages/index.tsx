@@ -1,21 +1,20 @@
-import React, { useEffect, useState } from 'react'
-import styles from '@/styles/Home.module.css'
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import styles from '@/styles/Home.module.css';
 
 import { formatDate } from '@/scripts/utils';
-import CompiledStats from '@/scripts/models/CompiledStats'
+import CompiledStats from '@/scripts/models/CompiledStats';
 
 import Form from 'react-bootstrap/Form';
-import Head from 'next/head'
-import { Inter } from 'next/font/google'
+import Head from 'next/head';
 
 import CollapsibleComponent from '@/components/CollapsibleComponent';
 import LoaderComponent from '@/components/LoaderComponent';
 import TableComponent from '@/components/TableComponent';
 
-const inter = Inter({ subsets: ['latin'] })
-
 export default function Home() {
   const backgroundImage = 'https://vylantze-foundry-bucket.s3.ap-southeast-1.amazonaws.com/gm/gfllgt2cu5ta1.png';
+  const router = useRouter();
 
   const [data, setData] = useState<CompiledStats | undefined>(undefined);
   const [sessionIndex, setSessionIndex] = useState<number>(0);
@@ -33,11 +32,38 @@ export default function Home() {
     })().catch(console.error);
   }, []);
 
+  useEffect(() => {
+    if (sessions === undefined) return;
+    try {
+      const date = router.query?.date as string;
+      if (date === undefined) return;
+      const dateStr = new Date(date).toLocaleDateString();
+      const session = sessions.find((session) => new Date(session.date).toLocaleDateString() === dateStr);
+      if (session === undefined) return;
+      const index = sessions.indexOf(session);
+      if (index === undefined) return;
+      setSessionIndex(index);
+    } catch (e: unknown) {
+      console.log('Error while setting date', e);
+    }
+  }, [sessions]);
+
   const onSelect = function (event: React.ChangeEvent<HTMLSelectElement> | undefined): React.ChangeEventHandler<HTMLSelectElement> | undefined {
-    if (event === undefined) return undefined;
+    if (sessions === undefined || event === undefined) return undefined;
     const index = parseInt(event.currentTarget?.value);
+    if (sessions.length < index || index < 0) return undefined;
     setSessionIndex(index);
+    const session = sessions[index];
+    router.replace({
+      pathname: router.pathname,
+      query: {
+        'date': formatDate(session.date, 'asDate')
+      }
+    }, undefined, {
+      shallow: true
+    });
   }
+
 
   return (
     <>
