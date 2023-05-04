@@ -81,7 +81,7 @@ export default function Home() {
                   })}
                 </Form.Select>
               </div>
-              <TableComponent stats={sessions[sessionIndex].stats} />
+              <TableComponent stats={sessions[sessionIndex].data} />
             </CollapsibleComponent>
           </div>
           )

@@ -365,10 +365,10 @@ function processFiles(messageObj: Messages, users: Record<string, User> = {}) {
     const id = date.toISOString();
     const session: Session = {
       id, date,
-      stats: convertToListAndSort(sessionStats[date.toLocaleDateString()])
+      data: convertToListAndSort(sessionStats[date.toLocaleDateString()])
     }
     return session;
-  }).filter(session => session.stats.length > 0);
+  }).filter(session => session.data.length > 0);
 
   const data: CompiledStats = {
     total: overall,

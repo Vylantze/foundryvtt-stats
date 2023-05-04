@@ -1,7 +1,7 @@
 import Statistics from "@/scripts/models/Statistics"
 
 export default interface Session {
-  stats: Statistics[]
+  data: Statistics[]
   date: Date
   id: string
 }
