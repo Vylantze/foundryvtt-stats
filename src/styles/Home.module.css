@@ -24,10 +24,19 @@
   margin-top: 5px;
 }
 
-.date {
+.lastUpdated {
   font-style: italic;
   user-select: none;
 }
+
+.sessionSelectContainer {
+  margin-bottom: 10px;
+}
+
+.sessionSelect {
+  max-width: 250px;
+}
+
 
 @media (max-width: 800px)  {
   .main {

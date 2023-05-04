@@ -29,6 +29,11 @@ interface Message {
   }
 }
 
+interface Messages {
+  messages: Message[]
+  lastUpdated: Date | undefined
+}
+
 interface Term {
   class: string
   evaluated?: boolean
@@ -64,4 +69,4 @@ interface Roll {
   }
 }
 
-export type { Message, Term, Roll }
+export type { Message, Messages, Term, Roll }

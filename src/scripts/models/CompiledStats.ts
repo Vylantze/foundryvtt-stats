@@ -1,3 +1,4 @@
+import Session from "@/scripts/models/Session"
 import Statistics from "@/scripts/models/Statistics"
 
 export default interface CompiledStats {
@@ -6,4 +7,6 @@ export default interface CompiledStats {
   lastSession: Statistics[]
   lastUpdated: Date | undefined
   lastSessionDate: Date | undefined
+  
+  sessions: Session[]
 }

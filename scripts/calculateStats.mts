@@ -3,12 +3,16 @@ import fs from 'fs';
 import path from 'path';
 import { IncomingMessage } from 'http';
 
-
 import { fileURLToPath } from 'url';
 import User from '@/scripts/models/User';
 import Statistics from '@/scripts/models/Statistics'
-import { Message, Roll } from '@/scripts/models/Raw';
+import { Message, Messages, Roll } from '@/scripts/models/Raw';
 import CompiledStats from '@/scripts/models/CompiledStats';
+import Session from '@/scripts/models/Session';
+
+const lastSessionDate = new Date("2023-04-30");
+const firstSessionDate = new Date("2023-03-19");
+const specialSessionDates: Date[] = [];
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,7 +21,10 @@ const dataURL = "https://vylantze-foundry-bucket.s3.ap-southeast-1.amazonaws.com
 
 const dataLocation = "../data/";
 const userDBFile = "users.db";
+const messageSubFolder = "messages/";
 const messageDBFile = "messages.db";
+
+const DATA_PATH = path.resolve(__dirname, dataLocation);
 
 const empty = function (): Statistics {
   return {
@@ -61,6 +68,20 @@ function init(user: User): Statistics {
   const stats = empty();
   stats.user = user;
   return stats;
+}
+
+function getAllSessionDates(): Date[] {
+  const dates: Date[] = [];
+  let todayDate = new Date();
+  let trackingDate = new Date(firstSessionDate.toISOString());
+  do {
+    dates.push(new Date(trackingDate.toDateString()));
+    trackingDate.setDate(trackingDate.getDate() + 7);
+  } while (trackingDate < todayDate);
+  
+  return dates.concat(specialSessionDates).sort((date1, date2) => {
+    return date1 < date2 ? 1 : -1;
+  });
 }
 
 function parseContent(stats: Statistics, content: string) {
@@ -116,6 +137,7 @@ function addToStatistics(stats: Statistics, msg: Message) {
   case 'damage-roll':
   case 'flat-check':
   case 'spell-cast':
+  case 'counteract-check':
     break;
   case undefined:
     // Parse for heal and dmg
@@ -233,95 +255,151 @@ function addToStatistics(stats: Statistics, msg: Message) {
   });
 }
 
-function processFiles() {
-  const dataPath = path.resolve(__dirname, dataLocation);
-  const userDBFilePath = path.resolve(dataPath, userDBFile);
-  const messageDBFilePath = path.resolve(dataPath, messageDBFile);
+function convertToListAndSort(stats: Record<string, Statistics>): Statistics[] {
+  if (stats === undefined || stats === null) return [];
+  return Object.values(stats)
+    .filter(stat => stat.messages > 0)
+    .sort((a: Statistics, b: Statistics) => {
+      if (a.user.name === 'Gamemaster') return 1;
+      if (b.user.name === 'Gamemaster') return -1;
+      return a.user.name > b.user.name ? 1 : -1
+    });
+}
+
+function getUsers(): Record<string, User> {
+  const userDBFilePath = path.resolve(DATA_PATH, userDBFile);
 
   // Users
   const userStr: string = fs.readFileSync(userDBFilePath).toString();
   const users: Record<string, User> = {};
-  const userStatistics: Record<string, Statistics> = {};
-  const lastSessionStats: Record<string, Statistics> = {};
   userStr.split('\n').forEach(line => {
       if (!line) return;
       const user: User = JSON.parse(line);
       users[user._id] = user;
-      const basicUser = {
-        _id: user._id,
-        name: user.name,
-        avatar: user.avatar,
-      };
-  userStatistics[user._id] = init(basicUser);
-      lastSessionStats[user._id] = init(basicUser);
   });
+
+  return users;
+}
+
+function getMessages(): Messages {
+  const messageFolderPath = path.resolve(DATA_PATH, messageSubFolder);
+
+  const messages: Message[] = [];
+  let lastUpdated: Date | undefined = undefined;
+
+  fs.readdirSync(messageFolderPath).forEach(file => {
+    const filepath = path.resolve(messageFolderPath, file);
+    if (!fs.existsSync(filepath)) return;
+    const stat = fs.statSync(filepath);
+    if (stat.isDirectory()) return;
+    
+    const msgStr: string = fs.readFileSync(filepath).toString();
+    msgStr.split('\n').forEach(line => {
+        if (!line) return;
+        const msg: Message = JSON.parse(line);
+        messages.push(msg);
+
+        const msgDate = new Date(msg.timestamp);
+        if (!lastUpdated || msgDate > lastUpdated) {
+          lastUpdated = msgDate;
+        }
+    });
+  });
+
+  const compiled: Messages = {
+    messages, lastUpdated
+  }
+  return compiled;
+}
+
+function processFiles(messageObj: Messages, users: Record<string, User> = {}) {
+  const dates = getAllSessionDates();
+
+  // User statistics
+  const userStatistics: Record<string, Statistics> = {};
+  const lastSessionStats: Record<string, Statistics> = {};
+  const sessionStats: Record<string, Record<string, Statistics>> = {};
+
+  dates.forEach(date => {
+    const id = date.toLocaleDateString();
+    sessionStats[id] = {}
+  })
+
+  for (const key in users) {
+    const user = users[key];
+    const basicUser = {
+      _id: user._id,
+      name: user.name,
+      avatar: user.avatar,
+    };
+    userStatistics[user._id] = init(basicUser);
+    lastSessionStats[user._id] = init(basicUser);
+    dates.forEach(date => {
+      const id = date.toLocaleDateString();
+      sessionStats[id][user._id] = init(basicUser);
+    })
+  }
 
   const overall: Statistics = init({
       _id: 'overall',
       name: 'overall'
   });
-  const lastSessionDate = new Date("2023-04-30");
 
-  const msgStr: string = fs.readFileSync(messageDBFilePath).toString();
-  const messages: Message[] = [];
-  let lastUpdated: Date | undefined = undefined;
-  msgStr.split('\n').forEach(line => {
-      if (!line) return;
-      const msg: Message = JSON.parse(line);
-      messages.push(msg);
+  const messages = messageObj.messages;
+  const lastUpdated = messageObj.lastUpdated;
 
-      const msgDate = new Date(msg.timestamp);
-      if (!lastUpdated || msgDate > lastUpdated) {
-        lastUpdated = msgDate;
-      }
+  messages.forEach((msg: Message) => {
+    const msgDate = new Date(msg.timestamp);
+    
+    addToStatistics(overall, msg);
+    addToStatistics(userStatistics[msg.user], msg);
+
+    if (msgDate.toLocaleDateString() === lastSessionDate.toLocaleDateString())
+      addToStatistics(lastSessionStats[msg.user], msg);
+    dates.forEach((date: Date) => {
+      if (msgDate.toLocaleDateString() !== date.toLocaleDateString()) return;
       
-      addToStatistics(overall, msg);
-      addToStatistics(userStatistics[msg.user], msg);
-
-      if (msgDate.toDateString() === lastSessionDate.toDateString())
-        addToStatistics(lastSessionStats[msg.user], msg);
+      const id = date.toLocaleDateString();
+      addToStatistics(sessionStats[id][msg.user], msg);
+    })
   });
 
-  const statsList = Object.values(userStatistics)
-      .filter(stat => stat.messages > 0)
-      .sort((a: Statistics, b: Statistics) => {
-        if (a.user.name === 'Gamemaster') return 1;
-        if (b.user.name === 'Gamemaster') return -1;
-        return a.user.name > b.user.name ? 1 : -1
-      });
+  const statsList = convertToListAndSort(userStatistics)
+  const lastSessionList = convertToListAndSort(lastSessionStats)
 
-  const lastSessionList = Object.values(lastSessionStats)
-      .filter(stat => stat.messages > 0)
-      .sort((a: Statistics, b: Statistics) => {
-        if (a.user.name === 'Gamemaster') return 1;
-        if (b.user.name === 'Gamemaster') return -1;
-        return a.user.name > b.user.name ? 1 : -1
-      });
+  const sessionsList = dates.map(date => {
+    const id = date.toISOString();
+    const session: Session = {
+      id, date,
+      stats: convertToListAndSort(sessionStats[date.toLocaleDateString()])
+    }
+    return session;
+  }).filter(session => session.stats.length > 0);
 
   const data: CompiledStats = {
     total: overall,
     overall: statsList,
     lastUpdated,
     lastSession: lastSessionList,
-    lastSessionDate
+    lastSessionDate,
+    sessions: sessionsList
   }
   console.log('Stats', data);
 
-  fs.writeFileSync(path.resolve(dataPath, "stats.json"), JSON.stringify(data));
+  fs.writeFileSync(path.resolve(DATA_PATH, "stats.json"), JSON.stringify(data));
   Object.values(users).forEach(user => {
-    if (user.name !== 'Rylond') return;
-    fs.writeFileSync(path.resolve(dataPath, `msg_${user.name}.db`), JSON.stringify(messages
+    if (user.name !== 'Arc') return;
+    fs.writeFileSync(path.resolve(DATA_PATH, `msg_${user.name}.db`), JSON.stringify(messages
       .filter(msg => msg.user === user._id)
-      .filter(msg => new Date(msg.timestamp).toDateString() === lastSessionDate.toDateString())
-      .filter(msg => msg.flags?.pf2e?.casting !== undefined)
+      //.filter(msg => new Date(msg.timestamp).toLocaleDateString() === lastSessionDate.toLocaleDateString())
       .sort((msg1, msg2) => msg1.timestamp > msg2.timestamp ? 1 : -1))
     );
   })
   
-  fs.writeFileSync(path.resolve(dataPath, `msg_last_session.db`), JSON.stringify(
+  fs.writeFileSync(path.resolve(DATA_PATH, `msg_last_session.db`), JSON.stringify(
     messages.filter(msg => {
-      return new Date(msg.timestamp).toDateString() === lastSessionDate.toDateString();
-      // const isLastSessionDate = new Date(msg.timestamp).toDateString() === lastSessionDate.toDateString();
+      return new Date(msg.timestamp).toLocaleDateString() === lastSessionDate.toLocaleDateString();
+      // const isLastSessionDate = new Date(msg.timestamp).toLocaleDateString() === lastSessionDate.toLocaleDateString();
       // if (!isLastSessionDate) return false;
       // const type = msg.flags?.pf2e?.context?.type;
       // return type === 'spell-cast';
@@ -353,7 +431,9 @@ async function downloadFiles() {
 
 // Run
 (async function () {
-  
   //await downloadFiles(); // No need to download
-  processFiles();
+
+  const messageOBj = getMessages();
+  const users = getUsers();
+  processFiles(messageOBj, users);
 })()
