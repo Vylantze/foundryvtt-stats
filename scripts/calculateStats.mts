@@ -10,7 +10,6 @@ import { Message, Messages, Roll } from '@/scripts/models/Raw';
 import CompiledStats from '@/scripts/models/CompiledStats';
 import Session from '@/scripts/models/Session';
 
-const lastSessionDate = new Date("2023-04-30");
 const firstSessionDate = new Date("2023-03-19");
 const specialSessionDates: Date[] = [];
 
@@ -317,7 +316,6 @@ function processFiles(messageObj: Messages, users: Record<string, User> = {}) {
 
   // User statistics
   const userStatistics: Record<string, Statistics> = {};
-  const lastSessionStats: Record<string, Statistics> = {};
   const sessionStats: Record<string, Record<string, Statistics>> = {};
 
   dates.forEach(date => {
@@ -333,7 +331,6 @@ function processFiles(messageObj: Messages, users: Record<string, User> = {}) {
       avatar: user.avatar,
     };
     userStatistics[user._id] = init(basicUser);
-    lastSessionStats[user._id] = init(basicUser);
     dates.forEach(date => {
       const id = date.toLocaleDateString();
       sessionStats[id][user._id] = init(basicUser);
@@ -354,8 +351,6 @@ function processFiles(messageObj: Messages, users: Record<string, User> = {}) {
     addToStatistics(overall, msg);
     addToStatistics(userStatistics[msg.user], msg);
 
-    if (msgDate.toLocaleDateString() === lastSessionDate.toLocaleDateString())
-      addToStatistics(lastSessionStats[msg.user], msg);
     dates.forEach((date: Date) => {
       if (msgDate.toLocaleDateString() !== date.toLocaleDateString()) return;
       
@@ -365,7 +360,6 @@ function processFiles(messageObj: Messages, users: Record<string, User> = {}) {
   });
 
   const statsList = convertToListAndSort(userStatistics)
-  const lastSessionList = convertToListAndSort(lastSessionStats)
 
   const sessionsList = dates.map(date => {
     const id = date.toISOString();
@@ -380,8 +374,6 @@ function processFiles(messageObj: Messages, users: Record<string, User> = {}) {
     total: overall,
     overall: statsList,
     lastUpdated,
-    lastSession: lastSessionList,
-    lastSessionDate,
     sessions: sessionsList
   }
   console.log('Stats', data);
@@ -391,20 +383,9 @@ function processFiles(messageObj: Messages, users: Record<string, User> = {}) {
     if (user.name !== 'Arc') return;
     fs.writeFileSync(path.resolve(DATA_PATH, `msg_${user.name}.db`), JSON.stringify(messages
       .filter(msg => msg.user === user._id)
-      //.filter(msg => new Date(msg.timestamp).toLocaleDateString() === lastSessionDate.toLocaleDateString())
       .sort((msg1, msg2) => msg1.timestamp > msg2.timestamp ? 1 : -1))
     );
-  })
-  
-  fs.writeFileSync(path.resolve(DATA_PATH, `msg_last_session.db`), JSON.stringify(
-    messages.filter(msg => {
-      return new Date(msg.timestamp).toLocaleDateString() === lastSessionDate.toLocaleDateString();
-      // const isLastSessionDate = new Date(msg.timestamp).toLocaleDateString() === lastSessionDate.toLocaleDateString();
-      // if (!isLastSessionDate) return false;
-      // const type = msg.flags?.pf2e?.context?.type;
-      // return type === 'spell-cast';
-    })
-  ));
+  });
 }
 
 // Download file
