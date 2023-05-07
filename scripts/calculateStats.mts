@@ -76,7 +76,7 @@ function getAllSessionDates(): Date[] {
   do {
     dates.push(new Date(trackingDate.toDateString()));
     trackingDate.setDate(trackingDate.getDate() + 7);
-  } while (trackingDate < todayDate);
+  } while (trackingDate <= todayDate);
   
   return dates.concat(specialSessionDates).sort((date1, date2) => {
     return date1 < date2 ? 1 : -1;
