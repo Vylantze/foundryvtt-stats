@@ -39,6 +39,8 @@ const empty = function (): Statistics {
     healDealt: 0,
     dmgTaken: 0,
     dmgHealed: 0,
+    positiveDealt: 0,
+    negativeDealt: 0,
     
     checks: {},
     critSuccess: {},
@@ -159,9 +161,8 @@ function addToStatistics(stats: Statistics, msg: Message) {
 
     // SpellTypes
     if (msgContent.includes('{Lay on Hands (Vs. Undead)}' )) {
-      decrementMap(stats.spellTypes, 'healing');
       incrementMap(stats.spellTypes, 'dc');
-    } else if (msgContent.includes('Healing') || msgContent.includes('>Heal<') || msgContent.includes('Harm (vs. Undead)')) {
+    } else if (msgContent.includes('Healing')) {
       incrementMap(stats.spellTypes, 'healing');
     } else if (domains?.includes('spell-dc')) {
       incrementMap(stats.spellTypes, 'dc');
@@ -241,11 +242,22 @@ function addToStatistics(stats: Statistics, msg: Message) {
         }
         break;
       case 'DamageRoll':
-        if (roll.formula.includes("[healing]")) {
-          stats.healDealt += roll.total ?? 0;
-        } else if (type === 'damage-roll') {
-          stats.dmgDealt += roll.total ?? 0;
-        }
+        const rollTrait = roll.options.damage?.traits;
+        const isAttackTrait =  rollTrait !== undefined && rollTrait.length > 0 && rollTrait[0] === 'attack';
+        roll.terms.map(term => {
+          term.rolls?.map(rollTerm => {
+            if (!rollTerm.evaluated) return;
+            if (rollTerm.formula.includes("[healing]")) {
+              stats.healDealt += rollTerm.total ?? 0;
+            } else if (rollTerm.formula.includes("[positive]") && !isAttackTrait) {
+                stats.positiveDealt += rollTerm.total ?? 0;
+            } else if (rollTerm.formula.includes("[negative]") && !isAttackTrait) {
+                stats.negativeDealt += rollTerm.total ?? 0;
+            } else if (type === 'damage-roll') {
+              stats.dmgDealt += rollTerm.total ?? 0;
+            }
+          })
+        })
         break;
       default:
         console.log('Unknown roll', roll.class);

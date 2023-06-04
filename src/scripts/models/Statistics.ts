@@ -34,6 +34,8 @@ export default interface Statistics {
   healDealt: number // non-d20 rolled for heals
   dmgTaken: number
   dmgHealed: number
+  positiveDealt: number
+  negativeDealt: number
 
   rerollsMade: number
 }

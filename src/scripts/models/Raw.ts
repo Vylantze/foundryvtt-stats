@@ -43,6 +43,12 @@ interface Term {
     result?: number
     active?: boolean
   }[]
+  rolls?: {
+    class: string
+    formula: string
+    total: number
+    evaluated: boolean
+  }[]
   operator?: string
 }
 
@@ -57,6 +63,9 @@ interface Roll {
     domains: string[]
     degreeOfSuccess?: number
     flavor?: string
+    damage?: {
+      traits?: string[]
+    }
   }
   terms: Term[]
   total?: number

@@ -115,6 +115,16 @@ export default class StatsTableController {
         isNested: false
       },
       {
+        name: 'Positive damage dealt (non-attacks)',
+        values: stats.map(stat => stat.positiveDealt),
+        isNested: false
+      },
+      {
+        name: 'Negative damage dealt (non-attacks)',
+        values: stats.map(stat => stat.negativeDealt),
+        isNested: false
+      },
+      {
         name: 'Heals dealt',
         values: stats.map(stat => stat.healDealt),
         isNested: false
