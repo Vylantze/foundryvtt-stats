@@ -24,9 +24,18 @@ interface Message {
       origin?: {
         type?: string
       }
+      modifiers?: Modifier[]
       isFromConsumable?: boolean
     }
   }
+}
+
+interface Modifier {
+  slug: string
+  label: string
+  modifier: number
+  type: string
+  enabled: boolean
 }
 
 interface Messages {

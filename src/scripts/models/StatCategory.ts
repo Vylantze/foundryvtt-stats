@@ -4,6 +4,8 @@ enum StatCategory {
   SkillCheck = 'skill-check',
   SavingThrow = 'saving-throw',
   Initiative = 'initiative',
+  PerceptionCheck = 'perception-check',
+  CounteractCheck = 'counteract-check',
   FlatCheck = 'flat-check',
   Free = 'free',
 }

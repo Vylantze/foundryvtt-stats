@@ -3,19 +3,17 @@ import { ReactNode } from "react"
 import SpellLevel from '@/scripts/models/SpellLevels';
 import SpellType from '@/scripts/models/SpellType';
 import Statistics from '@/scripts/models/Statistics';
+import DegreeOfSuccess from '@/scripts/models/DegreeOfSuccess';
+import DegreeOfSuccessObject from '@/scripts/models/DegreeOfSuccessObject';
 import TableTemplate from "@/scripts/models/TableTemplate";
 import StatCategory from "@/scripts/models/StatCategory";
 import { getPercentage, getDisplayName, sumAll } from "@/scripts/utils";
 
-interface DegreeOfSuccess {
-  critSuccess: number
-  success: number
-  failure: number
-  critFailure: number
-  noResult: number
-  totalChecksMade: number
-  totalValid: number
-}
+const categories = Object.values(StatCategory);
+const spellLevels = Object.values(SpellLevel);
+const spellTypes = Object.values(SpellType);
+const degreeOfSuccessTypes = Object.values(DegreeOfSuccess);
+const mapTypes = Array.from(Array(10).keys()).map(num => `MAP -${(num + 1)}`);
 
 export default class StatsTableController {
   private _stats: Statistics[] = [];
@@ -34,12 +32,36 @@ export default class StatsTableController {
     return this._templates;
   }
 
-  public static constructTableTemplate (stats: Statistics[]): TableTemplate[] {
-    const categories = Object.values(StatCategory);
-    const spellLevels = Object.values(SpellLevel);
-    const spellTypes = Object.values(SpellType);
+  public static getDegreeOfSuccessResults (stats: Statistics[], degrees: DegreeOfSuccessObject[], name: string, key: DegreeOfSuccess): TableTemplate[] {
+    const extraKeys: any[] = stats
+      .map(stat => Object.keys(stat[key]))
+      .flat();
 
-    const degrees: DegreeOfSuccess[] = stats.map((stat): DegreeOfSuccess => {
+    return [
+      {
+        name: name,
+        values: degrees.map(degree => getPercentage(degree[key] / degree.totalValid)),
+        isNested: false
+      },
+      {
+        name: 'Total',
+        values: degrees.map(degree => degree[key]),
+        isNested: true
+      },
+      categories
+        .map(category => {
+          return {
+            name: getDisplayName(category),
+            values: stats.map(stat => stat[key][category.toString()]),
+            isNested: true
+          }
+        })
+        .filter(template => template.values.filter(value => value !== undefined).length > 0),
+    ].flat();
+  }
+
+  public static constructTableTemplate (stats: Statistics[]): TableTemplate[] {
+    const degrees: DegreeOfSuccessObject[] = stats.map((stat): DegreeOfSuccessObject => {
       const noResult = sumAll(stat.noResult);
       return {
         critSuccess: sumAll(stat.critSuccess),
@@ -184,113 +206,35 @@ export default class StatsTableController {
         .filter(template => template.values.filter(value => value !== undefined).length > 0),
 
       //
-      // Success subsection
+      // Map attacks section
       //
-
-      // crit success
       {
-        name: 'Critical success',
-        values: degrees.map(degree => getPercentage(degree.critSuccess / degree.totalValid)),
+        name: 'MAP attacks made',
+        values: stats.map(stat => Object.values(stat.mapAttacks).map(obj => obj.totalChecksMade).reduce((sum, num) => sum + num, 0)),
         isNested: false
       },
-      {
-        name: 'Total',
-        values: degrees.map(degree => degree.critSuccess),
-        isNested: true
-      },
-      categories
-        .map(category => {
+
+      mapTypes
+        .map((mapType): TableTemplate => {
           return {
-            name: getDisplayName(category),
-            values: stats.map(stat => stat.critSuccess[category.toString()]),
+            name: `${mapType} hit rate`,
+            values: stats.map(stat => {
+              const mapAttack = stat.mapAttacks[mapType];
+              if (mapAttack === undefined) return undefined;
+              if (mapAttack.totalChecksMade === 0) return undefined;
+              return getPercentage((mapAttack.critSuccess + mapAttack.success) / mapAttack.totalChecksMade);
+            }),
             isNested: true
-          }
+          };
         })
         .filter(template => template.values.filter(value => value !== undefined).length > 0),
 
-      // success
-      {
-        name: 'Success',
-        values: degrees.map(degree => getPercentage(degree.success / degree.totalValid)),
-        isNested: false
-      },
-      {
-        name: 'Total',
-        values: degrees.map(degree => degree.success),
-        isNested: true
-      },
-      categories
-        .map(category => {
-          return {
-            name: getDisplayName(category),
-            values: stats.map(stat => stat.success[category.toString()]),
-            isNested: true
-          }
-        })
-        .filter(template => template.values.filter(value => value !== undefined).length > 0),
-
-      // failure
-      {
-        name: 'Failure',
-        values: degrees.map(degree => getPercentage(degree.failure / degree.totalValid)),
-        isNested: false
-      },
-      {
-        name: 'Total',
-        values: degrees.map(degree => degree.failure),
-        isNested: true
-      },
-      categories
-        .map(category => {
-          return {
-            name: getDisplayName(category),
-            values: stats.map(stat => stat.failure[category.toString()]),
-            isNested: true
-          }
-        })
-        .filter(template => template.values.filter(value => value !== undefined).length > 0),
-
-      // crit failure
-      {
-        name: 'Critical failure',
-        values: degrees.map(degree => getPercentage(degree.critFailure / degree.totalValid)),
-        isNested: false
-      },
-      {
-        name: 'Total',
-        values: degrees.map(degree => degree.critFailure),
-        isNested: true
-      },
-      categories
-        .map(category => {
-          return {
-            name: getDisplayName(category),
-            values: stats.map(stat => stat.critFailure[category.toString()]),
-            isNested: true
-          }
-        })
-        .filter(template => template.values.filter(value => value !== undefined).length > 0),
-
-      // no result
-      {
-        name: 'No result',
-        values: degrees.map(degree => getPercentage(degree.noResult / degree.totalChecksMade)),
-        isNested: false
-      },
-      {
-        name: 'Total',
-        values: degrees.map(degree => degree.noResult),
-        isNested: true
-      },
-      categories
-        .map(category => {
-          return {
-            name: getDisplayName(category),
-            values: stats.map(stat => stat.noResult[category.toString()]),
-            isNested: true
-          }
-        })
-        .filter(template => template.values.filter(value => value !== undefined).length > 0),
+      //
+      // Degrees of Success subsection
+      //
+      degreeOfSuccessTypes.map((successType) => 
+        this.getDegreeOfSuccessResults(stats, degrees, getDisplayName(successType), successType)
+      ).flat(),
 
       // Misc
       {

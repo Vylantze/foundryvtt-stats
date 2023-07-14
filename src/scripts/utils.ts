@@ -3,6 +3,7 @@ import dateformat from 'dateformat';
 import SpellLevel from '@/scripts/models/SpellLevels';
 import SpellType from '@/scripts/models/SpellType';
 import StatCategory from '@/scripts/models/StatCategory';
+import DegreeOfSuccess from '@/scripts/models/DegreeOfSuccess';
 
 function formatDate (data: string | Date | null | undefined, format: 'asDate' | 'asTime'): string {
   if (data === null || data === undefined) return '';
@@ -16,7 +17,7 @@ function formatDate (data: string | Date | null | undefined, format: 'asDate' | 
   }
 }
 
-function getDisplayName (name: StatCategory | SpellLevel | SpellType): string {
+function getDisplayName (name: StatCategory | SpellLevel | SpellType | DegreeOfSuccess): string {
   switch (name) {
     case StatCategory.AttackRoll:
       return 'Attack rolls';
@@ -24,6 +25,10 @@ function getDisplayName (name: StatCategory | SpellLevel | SpellType): string {
       return 'Flat checks';
     case StatCategory.Initiative:
       return 'Initiative';
+    case StatCategory.PerceptionCheck:
+      return 'Perception checks';
+    case StatCategory.CounteractCheck:
+      return 'Counteract checks';
     case StatCategory.SavingThrow:
       return 'Saving throws';
     case StatCategory.SkillCheck:
@@ -32,6 +37,17 @@ function getDisplayName (name: StatCategory | SpellLevel | SpellType): string {
       return 'Spell attack rolls';
     case StatCategory.Free:
       return 'Free';
+
+    case DegreeOfSuccess.CriticalSuccess:
+      return 'Critical success';
+    case DegreeOfSuccess.Success:
+      return 'Success';
+    case DegreeOfSuccess.Failure:
+      return 'Failure';
+    case DegreeOfSuccess.CriticalFailure:
+      return 'Critical failure';
+    case DegreeOfSuccess.NoResult:
+      return 'No result';
     
     case SpellLevel.Focus:
       return 'Focus';
@@ -80,7 +96,8 @@ function sumAll (map: Record<string, number>): number {
   return Object.values(map).reduce((sum, num) => sum + num, 0);
 }
 
-function getPercentage (value: number): string {
+function getPercentage (value: number | null | undefined): string {
+  if (value === null || value === undefined) value = 0;
   return `${(100 * value).toFixed(1)}%`;
 }
 

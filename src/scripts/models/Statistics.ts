@@ -1,4 +1,5 @@
 import User from "./User"
+import DegreeOfSuccessObject from "./DegreeOfSuccessObject"
 
 export default interface Statistics {
   user: User
@@ -26,6 +27,7 @@ export default interface Statistics {
   totalChecksMade: number // d20 rolled
 
   attacksMade: number
+  mapAttacks: Record<string, DegreeOfSuccessObject>
   spellsCasted: number
   spellTypes: Record<string, number>
   spellLevels: Record<string, number>

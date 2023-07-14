@@ -6,6 +6,7 @@ import { IncomingMessage } from 'http';
 import { fileURLToPath } from 'url';
 import User from '@/scripts/models/User';
 import Statistics from '@/scripts/models/Statistics'
+import DegreeOfSuccessObject from '@/scripts/models/DegreeOfSuccessObject';
 import { Message, Messages, Roll } from '@/scripts/models/Raw';
 import CompiledStats from '@/scripts/models/CompiledStats';
 import Session from '@/scripts/models/Session';
@@ -42,6 +43,7 @@ const empty = function (): Statistics {
     positiveDealt: 0,
     negativeDealt: 0,
     
+    mapAttacks: {},
     checks: {},
     critSuccess: {},
     success: {},
@@ -65,10 +67,28 @@ const empty = function (): Statistics {
   }
 }
 
+enum DegreeOfSuccess {
+  CriticalSuccess = 'critSuccess',
+  Success = 'success',
+  Failure = 'failure',
+  CriticalFailure = 'critFailure',
+  NoResult = 'noResult',
+};
+
 function init(user: User): Statistics {
   const stats = empty();
   stats.user = user;
   return stats;
+}
+
+function getSuccessTypeFromNum (num: number): DegreeOfSuccess {
+  switch(num) {
+    case 0: return DegreeOfSuccess.CriticalSuccess;
+    case 1: return DegreeOfSuccess.Success;
+    case 2: return DegreeOfSuccess.Failure;
+    case 3: return DegreeOfSuccess.CriticalFailure;
+    default: return DegreeOfSuccess.NoResult;
+  }
 }
 
 function getAllSessionDates(): Date[] {
@@ -119,16 +139,45 @@ function decrementMap(map: Record<string, number>, key: string | undefined) {
   if (!map[key]) map[key] = 0;
   map[key]--;
 }
+function incrementDegreeOfSuccess(map: Record<string, DegreeOfSuccessObject>, key: string | undefined, successType: DegreeOfSuccess) {
+  if (key === undefined) key = 'free';
+  if (!map[key]) {
+    map[key] = {
+      critSuccess: 0,
+      success: 0,
+      failure: 0,
+      critFailure: 0,
+      noResult: 0,
+      totalChecksMade: 0,
+      totalValid: 0,
+    };
+  }
+  map[key][successType]++;
+  map[key].totalChecksMade++;
+  if (successType !== DegreeOfSuccess.NoResult) map[key].totalValid++;
+}
 
 function addToStatistics(stats: Statistics, msg: Message) {
   if (!stats || !msg) return;
   stats.messages++;
 
   const type = msg.flags?.pf2e?.context?.type;
+  let mapType: string | null = null;
   switch (type) {
   case 'spell-attack-roll':
   case 'attack-roll':
     stats.attacksMade++;
+
+    // Get modifiers
+    const modifiers = msg.flags?.pf2e?.modifiers;
+    if (modifiers === undefined || modifiers === null) {
+      break;
+    }
+    modifiers.forEach(modifier => {
+      if (modifier === undefined || modifier.slug !== "multiple-attack-penalty") return;
+      mapType = `MAP ${modifier.modifier}`;
+      return;
+    })
     break;
   case 'saving-throw':
     break;
@@ -193,6 +242,7 @@ function addToStatistics(stats: Statistics, msg: Message) {
 
   let rolls: Roll[] = msg.rolls.map(roll => JSON.parse(roll));
   rolls.forEach(roll => {
+    const successType = getSuccessTypeFromNum(roll.options.degreeOfSuccess ?? -1);
     switch (roll.class) {
       case 'CheckRoll':
       case 'Roll':
@@ -201,26 +251,27 @@ function addToStatistics(stats: Statistics, msg: Message) {
         if (roll.terms && roll.terms.length > 0) {
           roll.terms.forEach(term => {
             if (term.class !== 'Die') return;
-            if (term.faces === 20) {
-              const result = term.results && term.results.length > 0 ? term.results[0] : null;
-              if (!result || !result.result) { return; }
-              hasD20 = true;
-              stats.natural.count++;
-              stats.natural.sum += result.result;
-              if (result.result === 20) {
-                stats.natural.max++;
-                incrementMap(stats.natural20, type);
-                
-                if (roll.options.degreeOfSuccess !== 3)
-                  incrementMap(stats.critSuccess, type);
-              }
-              if (result.result === 1) {
-                stats.natural.min++;
-                incrementMap(stats.natural1, type);
+            if (term.faces !== 20) return;
+            const result = term.results && term.results.length > 0 ? term.results[0] : null;
+            if (!result || !result.result) { return; }
+            hasD20 = true;
+            stats.natural.count++;
+            stats.natural.sum += result.result;
+            if (result.result === 20) {
+              stats.natural.max++;
+              incrementMap(stats.natural20, type);
+              
+              // If it didn't get downgraded due to a crit fail
+              if (successType !== DegreeOfSuccess.CriticalFailure)
+                incrementMap(stats.critSuccess, type);
+            }
+            if (result.result === 1) {
+              stats.natural.min++;
+              incrementMap(stats.natural1, type);
 
-                if (roll.options.degreeOfSuccess !== 0)
-                  incrementMap(stats.critFailure, type);
-              }
+              // If it didn't get upgraded due to a crit success
+              if (successType !== DegreeOfSuccess.CriticalSuccess)
+                incrementMap(stats.critFailure, type);
             }
           });
         }
@@ -233,12 +284,15 @@ function addToStatistics(stats: Statistics, msg: Message) {
 
         if (roll.options.isReroll) stats.rerollsMade++;
 
-        switch(roll.options.degreeOfSuccess) {
-          case 0: incrementMap(stats.critFailure, type); break;
-          case 1: incrementMap(stats.failure, type); break;
-          case 2: incrementMap(stats.success, type); break;
-          case 3: incrementMap(stats.critSuccess, type); break;
+        switch(successType) {
+          case DegreeOfSuccess.CriticalSuccess: incrementMap(stats.critFailure, type); break;
+          case DegreeOfSuccess.Success: incrementMap(stats.failure, type); break;
+          case DegreeOfSuccess.Failure: incrementMap(stats.success, type); break;
+          case DegreeOfSuccess.CriticalFailure: incrementMap(stats.critSuccess, type); break;
           default: incrementMap(stats.noResult, type); break;
+        }
+        if (mapType !== null) {
+          incrementDegreeOfSuccess(stats.mapAttacks, mapType, successType);
         }
         break;
       case 'DamageRoll':
