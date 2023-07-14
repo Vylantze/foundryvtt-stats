@@ -33,6 +33,19 @@ export default class StatsTableController {
     return this._templates;
   }
 
+  public static getDegreeOfSuccessDataAsBreakdown (stat: Statistics, key: string): BreakdownTableType {
+    return {
+      total: stat.checks[key],
+      records: {
+        'Critical success': stat.critSuccess[key],
+        'Success': stat.success[key],
+        'Failure': stat.failure[key],
+        'Critical failure': stat.critFailure[key],
+        'No result': stat.noResult[key],
+      }
+    }
+  }
+
   public static getDegreeOfSuccessResults (stats: Statistics[], degrees: DegreeOfSuccessObject[], name: string, key: DegreeOfSuccess): TableTemplate[] {
     const extraKeys: any[] = stats
       .map(stat => Object.keys(stat[key]))
@@ -201,6 +214,7 @@ export default class StatsTableController {
           return {
             name: getDisplayName(category),
             values: stats.map(stat => stat.checks[category.toString()]),
+            hoverData: stats.map(stat => this.getDegreeOfSuccessDataAsBreakdown(stat, category)),
             isNested: true
           };
         })
