@@ -36,3 +36,33 @@
 .rowhead.nested {
   padding-left: 30px !important;
 }
+
+
+
+/* Tooltip container */
+.tooltip {
+  position: relative;
+  border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+}
+
+/* Tooltip text */
+.tooltiptext {
+  visibility: hidden;
+  background-color: aqua;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+  user-select: none;
+  pointer-events: none;
+ 
+  /* Position the tooltip text - see examples below! */
+  position: absolute;
+  bottom: 100%;
+  right: 50%;
+  margin-right: -50%;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}

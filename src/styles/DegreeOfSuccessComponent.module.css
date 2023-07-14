@@ -1,0 +1,19 @@
+.component {
+  display: block;
+  text-align: left;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.row {
+  display: flex;
+}
+
+.left {
+  width: 100px;
+}
+
+.right {
+  flex: 1;
+  white-space: nowrap;
+}

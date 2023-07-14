@@ -224,6 +224,7 @@ export default class StatsTableController {
               if (mapAttack.totalChecksMade === 0) return undefined;
               return getPercentage((mapAttack.critSuccess + mapAttack.success) / mapAttack.totalChecksMade);
             }),
+            hoverData: stats.map(stat => stat.mapAttacks[mapType]),
             isNested: true
           };
         })

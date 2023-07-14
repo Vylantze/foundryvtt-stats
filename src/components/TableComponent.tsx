@@ -5,7 +5,8 @@ import styles from '@/styles/TableComponent.module.css';
 import Table from 'react-bootstrap/Table';
 import Statistics from '@/scripts/models/Statistics';
 import StatsTableController from '@/scripts/classes/StatsTableController';
-import TableTemplate from '@/scripts/models/TableTemplate';
+
+import DegreeOfSuccessComponent from "@/components/DegreeOfSuccessComponent";
 
 interface IProps {
   stats: Statistics[]
@@ -53,13 +54,22 @@ export default function TableComponent (props: IProps) {
         <tbody>      
           {controller.templates.map((template, index) => {
             const descriptionStyle = template.isNested ? `${styles.nested} ${styles.rowhead}` : styles.rowhead;
-            const tdStyle = template.isNested ? `${styles.nested} ${styles.content}` : styles.content;
+            const nestedStyle = template.isNested ? `${styles.nested} ${styles.content}` : styles.content;
+            const tdStyle = template.hoverData !== undefined ? `${nestedStyle} ${styles.tooltip}` : nestedStyle;
             return (
               <tr  key={`row-${index}`}>
                 <td className={descriptionStyle}>{template.name}</td>
                 {template.values.map((value, subIndex) =>
                   <td className={tdStyle} key={`row-${index}-td-${subIndex}`}>
-                    {value}
+                    <span>{value}</span>
+                    {
+                      template.hoverData !== undefined && template.hoverData[subIndex] !== undefined ?
+                      <div className={styles.tooltiptext}>
+                        <DegreeOfSuccessComponent
+                          data={template.hoverData[subIndex]}
+                        />
+                      </div> : <div />
+                    }
                   </td>
                 )}
               </tr>
