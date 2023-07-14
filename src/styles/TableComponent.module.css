@@ -65,3 +65,11 @@
 .tooltip:hover .tooltiptext {
   visibility: visible;
 }
+
+.tooltip .tooltipable {
+  text-decoration: underline;
+  
+  text-underline-offset: 3px;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 1px;
+}

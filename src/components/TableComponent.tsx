@@ -61,14 +61,17 @@ export default function TableComponent (props: IProps) {
                 <td className={descriptionStyle}>{template.name}</td>
                 {template.values.map((value, subIndex) =>
                   <td className={tdStyle} key={`row-${index}-td-${subIndex}`}>
-                    <span>{value}</span>
                     {
                       template.hoverData !== undefined && template.hoverData[subIndex] !== undefined ?
-                      <div className={styles.tooltiptext}>
-                        <BreakdownTableComponent
-                          data={template.hoverData[subIndex]}
-                        />
-                      </div> : <div />
+                      <>
+                        <span className={styles.tooltipable}>{value}</span>
+                        <div className={styles.tooltiptext}>
+                          <BreakdownTableComponent
+                            data={template.hoverData[subIndex]}
+                          />
+                        </div>
+                      </> :
+                      <span>{value}</span>
                     }
                   </td>
                 )}
