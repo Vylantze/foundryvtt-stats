@@ -23,10 +23,10 @@ export default function BreakdownTableComponent (props: IProps) {
 
   return (
     <div className={styles.component}>
-      {keys.map(key => {
+      {keys.map((key, index) => {
         if (records[key] === 0 || records[key] === undefined) return;
         return (
-          <div className={styles.row}>
+          <div className={styles.row} key={`breakdown-row-${index}`}>
             <div className={styles.left}>
               {key}:
             </div>
@@ -36,8 +36,8 @@ export default function BreakdownTableComponent (props: IProps) {
           </div>
         );
       })}
-      <hr className={styles.divider} />
-      <div className={styles.row}>
+      <hr className={styles.divider} key="breakdown-row-divider" />
+      <div className={styles.row} key="breakdown-row-total">
         <div className={styles.left}>
           Total:
         </div>
