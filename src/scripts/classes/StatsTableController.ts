@@ -228,8 +228,8 @@ export default class StatsTableController {
       // Map attacks section
       //
       {
-        name: 'Attacks with no MAP made',
-        values: stats.map(stat => stat.noMapAttacks.totalChecksMade),
+        name: 'Attacks without MAP hit rate',
+        values: stats.map(stat => getPercentage((stat.noMapAttacks.critSuccess + stat.noMapAttacks.success) / stat.noMapAttacks.totalChecksMade)),
         hoverData: stats.map((stat: Statistics): BreakdownTableType | undefined => {
           const mapAttack = stat.noMapAttacks;
           if (mapAttack === undefined) return undefined;
