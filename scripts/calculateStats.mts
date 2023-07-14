@@ -305,14 +305,30 @@ function getMessages(): Messages {
     if (stat.isDirectory()) return;
     
     const msgStr: string = fs.readFileSync(filepath).toString();
+    if (path.extname(filepath) === '.json') {
+      const jsonData: Record<string, string> = JSON.parse(msgStr);
+      Object.values(jsonData).forEach(value => {
+        messages.push(JSON.parse(value));
+      });
+      return;
+    }
     msgStr.split('\n').forEach(line => {
         if (!line) return;
-        const msg: Message = JSON.parse(line);
-        messages.push(msg);
+        const dataLineFirst = line.substring(line.search('{'));
+        const dataLineSplit = dataLineFirst.split('}');
+        dataLineSplit.pop();
+        const dataLine = dataLineSplit.join('}') + '}';
+        try {
+          const msg: Message = JSON.parse(dataLine);
+          messages.push(msg);
 
-        const msgDate = new Date(msg.timestamp);
-        if (!lastUpdated || msgDate > lastUpdated) {
-          lastUpdated = msgDate;
+          const msgDate = new Date(msg.timestamp);
+          if (!lastUpdated || msgDate > lastUpdated) {
+            lastUpdated = msgDate;
+          }
+        } catch (e) {
+          console.error('Error with dataLine', dataLine);
+          throw e;
         }
     });
   });
