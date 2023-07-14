@@ -6,7 +6,7 @@ import Table from 'react-bootstrap/Table';
 import Statistics from '@/scripts/models/Statistics';
 import StatsTableController from '@/scripts/classes/StatsTableController';
 
-import DegreeOfSuccessComponent from "@/components/DegreeOfSuccessComponent";
+import BreakdownTableComponent from "@/components/BreakdownTableComponent";
 
 interface IProps {
   stats: Statistics[]
@@ -65,7 +65,7 @@ export default function TableComponent (props: IProps) {
                     {
                       template.hoverData !== undefined && template.hoverData[subIndex] !== undefined ?
                       <div className={styles.tooltiptext}>
-                        <DegreeOfSuccessComponent
+                        <BreakdownTableComponent
                           data={template.hoverData[subIndex]}
                         />
                       </div> : <div />

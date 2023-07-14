@@ -8,6 +8,7 @@ import DegreeOfSuccessObject from '@/scripts/models/DegreeOfSuccessObject';
 import TableTemplate from "@/scripts/models/TableTemplate";
 import StatCategory from "@/scripts/models/StatCategory";
 import { getPercentage, getDisplayName, sumAll } from "@/scripts/utils";
+import { BreakdownTableType } from "@/components/BreakdownTableComponent";
 
 const categories = Object.values(StatCategory);
 const spellLevels = Object.values(SpellLevel);
@@ -224,7 +225,20 @@ export default class StatsTableController {
               if (mapAttack.totalChecksMade === 0) return undefined;
               return getPercentage((mapAttack.critSuccess + mapAttack.success) / mapAttack.totalChecksMade);
             }),
-            hoverData: stats.map(stat => stat.mapAttacks[mapType]),
+            hoverData: stats.map((stat: Statistics): BreakdownTableType | undefined => {
+              const mapAttack = stat.mapAttacks[mapType];
+              if (mapAttack === undefined) return undefined;
+              return {
+                total: mapAttack.totalChecksMade,
+                records: {
+                  'Critical success': mapAttack.critSuccess,
+                  'Success': mapAttack.success,
+                  'Failure': mapAttack.failure,
+                  'Critical failure': mapAttack.critFailure,
+                  'No result': mapAttack.noResult,
+                }
+              }
+            }),
             isNested: true
           };
         })

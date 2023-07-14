@@ -1,10 +1,10 @@
 import { ReactNode } from "react"
-import DegreeOfSuccessObject from "@/scripts/models/DegreeOfSuccessObject"
+import { BreakdownTableType } from "@/components/BreakdownTableComponent"
 
 export default interface TableTemplate {
   name: string
   values: (string | ReactNode)[]
   isNested?: boolean
-  hoverData?: (DegreeOfSuccessObject | undefined)[]
+  hoverData?: (BreakdownTableType | undefined)[]
   isHighlighted?: boolean
 }

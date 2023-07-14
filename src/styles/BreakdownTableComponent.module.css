@@ -17,3 +17,7 @@
   flex: 1;
   white-space: nowrap;
 }
+
+.divider {
+  margin: 2px;
+}
