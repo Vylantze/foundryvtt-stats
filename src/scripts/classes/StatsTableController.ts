@@ -234,7 +234,7 @@ export default class StatsTableController {
           const mapAttack = stat.noMapAttacks;
           if (mapAttack === undefined) return undefined;
           return {
-            total: mapAttack.totalValid,
+            total: mapAttack.totalChecksMade,
             records: {
               'Critical success': mapAttack.critSuccess,
               'Success': mapAttack.success,
@@ -266,7 +266,7 @@ export default class StatsTableController {
               const mapAttack = stat.mapAttacks[mapType];
               if (mapAttack === undefined) return undefined;
               return {
-                total: mapAttack.totalValid,
+                total: mapAttack.totalChecksMade,
                 records: {
                   'Critical success': mapAttack.critSuccess,
                   'Success': mapAttack.success,

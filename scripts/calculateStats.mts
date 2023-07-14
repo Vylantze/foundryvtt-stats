@@ -94,10 +94,10 @@ function init(user: User): Statistics {
 
 function getSuccessTypeFromNum (num: number): DegreeOfSuccess {
   switch(num) {
-    case 0: return DegreeOfSuccess.CriticalSuccess;
-    case 1: return DegreeOfSuccess.Success;
-    case 2: return DegreeOfSuccess.Failure;
-    case 3: return DegreeOfSuccess.CriticalFailure;
+    case 0: return DegreeOfSuccess.CriticalFailure;
+    case 1: return DegreeOfSuccess.Failure;
+    case 2: return DegreeOfSuccess.Success;
+    case 3: return DegreeOfSuccess.CriticalSuccess;
     default: return DegreeOfSuccess.NoResult;
   }
 }
@@ -295,10 +295,10 @@ function addToStatistics(stats: Statistics, msg: Message) {
         if (roll.options.isReroll) stats.rerollsMade++;
 
         switch(successType) {
-          case DegreeOfSuccess.CriticalSuccess: incrementMap(stats.critFailure, type); break;
-          case DegreeOfSuccess.Success: incrementMap(stats.failure, type); break;
-          case DegreeOfSuccess.Failure: incrementMap(stats.success, type); break;
-          case DegreeOfSuccess.CriticalFailure: incrementMap(stats.critSuccess, type); break;
+          case DegreeOfSuccess.CriticalFailure: incrementMap(stats.critFailure, type); break;
+          case DegreeOfSuccess.Failure: incrementMap(stats.failure, type); break;
+          case DegreeOfSuccess.Success: incrementMap(stats.success, type); break;
+          case DegreeOfSuccess.CriticalSuccess: incrementMap(stats.critSuccess, type); break;
           default: incrementMap(stats.noResult, type); break;
         }
         if (mapType !== null) {
