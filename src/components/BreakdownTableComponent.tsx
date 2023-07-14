@@ -34,9 +34,12 @@ export default function BreakdownTableComponent (props: IProps) {
               <td className={styles.tablecell}>
                 {records[key]}
               </td>
-              <td className={styles.tablecell}>
-                {getPercentage(records[key] / total)}
-              </td>
+              {
+                total > 0 ?
+                <td className={styles.tablecell}>
+                  {getPercentage(records[key] / total)}
+                </td> : <td />
+              }
             </tr>
           );
         })}
