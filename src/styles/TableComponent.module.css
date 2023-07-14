@@ -57,8 +57,8 @@
  
   /* Position the tooltip text - see examples below! */
   position: absolute;
-  bottom: 100%;
-  right: 0%;
+  bottom: 95%;
+  right: 10%;
 }
 
 /* Show the tooltip text when you mouse over the tooltip container */

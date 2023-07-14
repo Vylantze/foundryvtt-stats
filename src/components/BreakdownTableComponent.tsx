@@ -22,29 +22,34 @@ export default function BreakdownTableComponent (props: IProps) {
   const keys = Object.keys(data.records);
 
   return (
-    <div className={styles.component}>
+    <table className={styles.component}>
       {keys.map((key, index) => {
         if (records[key] === 0 || records[key] === undefined) return;
         return (
-          <div className={styles.row} key={`breakdown-row-${index}`}>
-            <div className={styles.left}>
-              {key}:
-            </div>
-            <div className={styles.right}>
-              {records[key]} ({getPercentage(records[key] / total)})
-            </div>
-          </div>
+          <tr className={styles.row} key={`breakdown-row-${index}`}>
+            <td className={`${styles.tablecell} ${styles.left}`}>
+              {key}
+            </td>
+            <td className={styles.tablecell}>
+              {records[key]}
+            </td>
+            <td className={styles.tablecell}>
+              {getPercentage(records[key] / total)}
+            </td>
+          </tr>
         );
       })}
-      <hr className={styles.divider} key="breakdown-row-divider" />
-      <div className={styles.row} key="breakdown-row-total">
-        <div className={styles.left}>
-          Total:
-        </div>
-        <div className={styles.right}>
-          {total} (100%)
-        </div>
-      </div>
-    </div>
+      <tr className={`${styles.row} ${styles.total}`} key="breakdown-row-total">
+        <td className={`${styles.tablecell} ${styles.left}`}>
+          Total
+        </td>
+        <td className={styles.tablecell}>
+          {total}
+        </td>
+        <td className={styles.tablecell}>
+          100%
+        </td>
+      </tr>
+    </table>
   )
 }
