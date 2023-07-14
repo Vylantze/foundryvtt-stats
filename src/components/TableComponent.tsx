@@ -62,7 +62,7 @@ export default function TableComponent (props: IProps) {
                 {template.values.map((value, subIndex) =>
                   <td className={tdStyle} key={`row-${index}-td-${subIndex}`}>
                     {
-                      template.hoverData !== undefined && template.hoverData[subIndex] !== undefined ?
+                      value !== undefined && template.hoverData !== undefined && template.hoverData[subIndex]?.records !== undefined && template.hoverData[subIndex]?.total !== 0 ?
                       <>
                         <span className={styles.tooltipable}>{value}</span>
                         <div className={styles.tooltiptext}>

@@ -228,6 +228,25 @@ export default class StatsTableController {
       // Map attacks section
       //
       {
+        name: '0 MAP attacks made',
+        values: stats.map(stat => stat.noMapAttacks.totalChecksMade),
+        hoverData: stats.map((stat: Statistics): BreakdownTableType | undefined => {
+          const mapAttack = stat.noMapAttacks;
+          if (mapAttack === undefined) return undefined;
+          return {
+            total: mapAttack.totalValid,
+            records: {
+              'Critical success': mapAttack.critSuccess,
+              'Success': mapAttack.success,
+              'Failure': mapAttack.failure,
+              'Critical failure': mapAttack.critFailure,
+              'No result': mapAttack.noResult,
+            }
+          }
+        }),
+        isNested: false
+      },
+      {
         name: 'MAP attacks made',
         values: stats.map(stat => Object.values(stat.mapAttacks).map(obj => obj.totalChecksMade).reduce((sum, num) => sum + num, 0)),
         isNested: false
@@ -247,7 +266,7 @@ export default class StatsTableController {
               const mapAttack = stat.mapAttacks[mapType];
               if (mapAttack === undefined) return undefined;
               return {
-                total: mapAttack.totalChecksMade,
+                total: mapAttack.totalValid,
                 records: {
                   'Critical success': mapAttack.critSuccess,
                   'Success': mapAttack.success,

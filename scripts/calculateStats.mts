@@ -46,6 +46,15 @@ const empty = function (): Statistics {
     dmgDealtBreakdown: {},
     
     mapAttacks: {},
+    noMapAttacks: {
+      critSuccess: 0,
+      success: 0,
+      failure: 0,
+      critFailure: 0,
+      noResult: 0,
+      totalChecksMade: 0,
+      totalValid: 0,
+    },
     checks: {},
     critSuccess: {},
     success: {},
@@ -178,7 +187,6 @@ function addToStatistics(stats: Statistics, msg: Message) {
     modifiers.forEach(modifier => {
       if (modifier === undefined || modifier.slug !== "multiple-attack-penalty") return;
       mapType = `MAP ${modifier.modifier}`;
-      return;
     })
     break;
   case 'saving-throw':
@@ -295,6 +303,12 @@ function addToStatistics(stats: Statistics, msg: Message) {
         }
         if (mapType !== null) {
           incrementDegreeOfSuccess(stats.mapAttacks, mapType, successType);
+        } else if (type === 'spell-attack-roll' || type === 'attack-roll') {
+          stats.noMapAttacks[successType]++;
+          stats.noMapAttacks.totalChecksMade++;
+          if (successType !== DegreeOfSuccess.NoResult) {
+            stats.noMapAttacks.totalValid++;
+          }
         }
         break;
       case 'DamageRoll':

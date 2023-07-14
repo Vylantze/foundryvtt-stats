@@ -67,7 +67,7 @@ interface Term {
 interface Roll {
   class: string
   type: number
-  domains: string[]
+  domains?: string[]
   formula: string
   options: {
     rollerId: string

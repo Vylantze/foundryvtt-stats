@@ -28,6 +28,7 @@ export default interface Statistics {
 
   attacksMade: number
   mapAttacks: Record<string, DegreeOfSuccessObject>
+  noMapAttacks: DegreeOfSuccessObject
   spellsCasted: number
   spellTypes: Record<string, number>
   spellLevels: Record<string, number>
