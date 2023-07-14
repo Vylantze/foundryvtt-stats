@@ -228,7 +228,7 @@ export default class StatsTableController {
       // Map attacks section
       //
       {
-        name: '0 MAP attacks made',
+        name: 'Attacks with no MAP made',
         values: stats.map(stat => stat.noMapAttacks.totalChecksMade),
         hoverData: stats.map((stat: Statistics): BreakdownTableType | undefined => {
           const mapAttack = stat.noMapAttacks;
