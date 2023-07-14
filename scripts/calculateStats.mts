@@ -42,6 +42,8 @@ const empty = function (): Statistics {
     dmgHealed: 0,
     positiveDealt: 0,
     negativeDealt: 0,
+
+    dmgDealtBreakdown: {},
     
     mapAttacks: {},
     checks: {},
@@ -129,10 +131,10 @@ function parseContent(stats: Statistics, content: string) {
   }
 }
 
-function incrementMap(map: Record<string, number>, key: string | undefined) {
+function incrementMap(map: Record<string, number>, key: string | undefined, value?: number) {
   if (key === undefined) key = 'free';
   if (!map[key]) map[key] = 0;
-  map[key]++;
+  map[key] += value === undefined ? 1 : value;
 }
 function decrementMap(map: Record<string, number>, key: string | undefined) {
   if (key === undefined) key = 'free';
@@ -309,6 +311,7 @@ function addToStatistics(stats: Statistics, msg: Message) {
                 stats.negativeDealt += rollTerm.total ?? 0;
             } else if (type === 'damage-roll') {
               stats.dmgDealt += rollTerm.total ?? 0;
+              incrementMap(stats.dmgDealtBreakdown, rollTerm.options?.flavor ?? 'untyped', rollTerm.total ?? 0);
             }
           })
         })

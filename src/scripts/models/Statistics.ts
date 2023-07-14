@@ -32,6 +32,8 @@ export default interface Statistics {
   spellTypes: Record<string, number>
   spellLevels: Record<string, number>
 
+  dmgDealtBreakdown: Record<string, number>
+
   dmgDealt: number // non-d20 rolled
   healDealt: number // non-d20 rolled for heals
   dmgTaken: number

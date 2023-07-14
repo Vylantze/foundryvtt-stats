@@ -148,6 +148,20 @@ export default class StatsTableController {
       {
         name: 'Damage dealt',
         values: stats.map(stat => stat.dmgDealt),
+        hoverData: stats.map(stat => ({
+          total: stat.dmgDealt,
+          records: stat.dmgDealtBreakdown
+        })),
+        isNested: false
+      },
+      {
+        name: 'Damage taken',
+        values: stats.map(stat => stat.dmgTaken),
+        isNested: false
+      },
+      {
+        name: 'Damage healed',
+        values: stats.map(stat => stat.dmgHealed),
         isNested: false
       },
       {
@@ -163,16 +177,6 @@ export default class StatsTableController {
       {
         name: 'Heals dealt',
         values: stats.map(stat => stat.healDealt),
-        isNested: false
-      },
-      {
-        name: 'Damage taken',
-        values: stats.map(stat => stat.dmgTaken),
-        isNested: false
-      },
-      {
-        name: 'Damage healed',
-        values: stats.map(stat => stat.dmgHealed),
         isNested: false
       },
 

@@ -57,6 +57,9 @@ interface Term {
     formula: string
     total: number
     evaluated: boolean
+    options?: {
+      flavor: string
+    }
   }[]
   operator?: string
 }
