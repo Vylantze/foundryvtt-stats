@@ -66,6 +66,11 @@ export default function BreakdownTableComponent (props: IProps) {
           total > 0 ?
           <>
             <tr className={`${styles.row} ${styles.total}`} key="breakdown-row-total">
+              {
+                isSplitTable ?
+                <><td /><td /><td /></> :
+                <></>
+              }
               <td className={`${styles.tablecell} ${styles.left}`}>
                 Total
               </td>
