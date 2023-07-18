@@ -99,6 +99,19 @@ export default class StatsTableController {
       {
         name: 'Natural rolls (avg)',
         values: stats.map(stat => (stat.natural.sum / stat.natural.count).toFixed(1)),
+        hoverData: stats.map(stat => ({
+          total: stat.natural.count,
+          records: stat.natural.breakdown
+        })),
+        isNested: false
+      },
+
+      {
+        name: 'Most frequent natural roll',
+        values: stats.map(stat => {
+          const natBreakdownKeys = Object.keys(stat.natural.breakdown);
+          return natBreakdownKeys.reduce((common, current) => stat.natural.breakdown[common] <= stat.natural.breakdown[current] ? current : common, natBreakdownKeys[0]);
+        }),
         isNested: false
       },
 

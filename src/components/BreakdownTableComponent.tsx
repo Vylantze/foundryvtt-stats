@@ -20,25 +20,45 @@ export default function BreakdownTableComponent (props: IProps) {
 
   const records = data.records;
   const keys = Object.keys(data.records);
+  console.log('Records', data.records);
+  
+  const length = keys.length;
+  const isSplitTable = length > 10;
+  const middlePoint = isSplitTable ? Math.ceil(length / 2) : -1;
+
+  const getBreakdownTD = function (key: string, value: number, total: number, isSplit: boolean = false) {
+    return (
+      <>
+        <td className={`${styles.tablecell} ${styles.left}`}>
+          {key}
+        </td>
+        <td className={styles.tablecell}>
+          {value}
+        </td>
+        {
+          total > 0 ?
+          <td className={`${styles.tablecell} ${styles.right} ${isSplit ? styles.split : ''}`}>
+            {getPercentage(value / total)}
+          </td> : <td />
+        }
+      </>
+    );
+  }
 
   return (
     <table className={styles.component}>
       <tbody>
         {keys.map((key, index) => {
-          if (records[key] === 0 || records[key] === undefined) return;
+          const value = records[key];
+          if (value === 0 || value === undefined) return;
+          if (isSplitTable && index >= middlePoint) return;
           return (
             <tr className={styles.row} key={`breakdown-row-${index}`}>
-              <td className={`${styles.tablecell} ${styles.left}`}>
-                {key}
-              </td>
-              <td className={styles.tablecell}>
-                {records[key]}
-              </td>
+              {getBreakdownTD(key, value, total, isSplitTable)}
               {
-                total > 0 ?
-                <td className={styles.tablecell}>
-                  {getPercentage(records[key] / total)}
-                </td> : <td />
+                isSplitTable && middlePoint + index < length ?
+                getBreakdownTD(keys[middlePoint + index], records[keys[middlePoint + index]], total)
+                : <></>
               }
             </tr>
           );

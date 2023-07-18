@@ -68,7 +68,8 @@ const empty = function (): Statistics {
       max: 0,
       min: 0,
       sum: 0,
-      count: 0
+      count: 0,
+      breakdown: {}
     },
     spellsCasted: 0,
     spellTypes: {},
@@ -267,6 +268,7 @@ function addToStatistics(stats: Statistics, msg: Message) {
             hasD20 = true;
             stats.natural.count++;
             stats.natural.sum += result.result;
+            incrementMap(stats.natural.breakdown, result.result.toString());
             if (result.result === 20) {
               stats.natural.max++;
               incrementMap(stats.natural20, type);

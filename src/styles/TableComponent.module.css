@@ -1,6 +1,5 @@
 .container {
   display: relative;
-  overflow: auto;
   width: 100%;
 }
 

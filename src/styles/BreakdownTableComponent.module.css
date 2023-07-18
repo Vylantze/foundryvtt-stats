@@ -18,14 +18,33 @@
 
 .tablecell.left {
   text-align: left;
+  min-width: 60px;
+  padding-left: 10px;
+}
+
+.tablecell:first-child {
+  min-width: 50px;
+  padding-left: 0px;
+}
+
+.tablecell.split {
+  border-right: 1px solid #000;
 }
 
 .tablecell:last-child {
   padding-right: 0px;
 }
 
+.tablecell:last-child.split {
+  padding-right: 10px;
+}
+
 .divider {
   margin: 2px;
+}
+
+.tabledivider {
+  width: 30px;
 }
 
 .total {

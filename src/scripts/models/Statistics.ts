@@ -10,6 +10,7 @@ export default interface Statistics {
     min: number // 1
     sum: number
     count: number
+    breakdown: Record<string, number>
   }
 
   checks: Record<string, number>
