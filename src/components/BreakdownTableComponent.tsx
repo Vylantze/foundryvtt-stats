@@ -20,7 +20,6 @@ export default function BreakdownTableComponent (props: IProps) {
 
   const records = data.records;
   const keys = Object.keys(data.records);
-  console.log('Records', data.records);
   
   const length = keys.length;
   const isSplitTable = length > 10;
